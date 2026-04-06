@@ -9,6 +9,13 @@ export const metadata: Metadata = {
     title: 'Liminal',
     description: 'A cabinet of instruments for thought.',
     type: 'website',
+    siteName: 'Liminal',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Liminal — A Cabinet of Instruments for Thought',
+    description: 'Six serious thinking tools. Not chatbots, not therapy. Each tool performs a distinct mode of inquiry.',
   },
 };
 
