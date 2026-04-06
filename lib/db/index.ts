@@ -1,5 +1,26 @@
 import { Pool } from 'pg';
 
+// Log DB host at startup so Railway logs immediately reveal connection issues
+// (credentials are never printed — only host, port, and DB name)
+if (process.env.DATABASE_URL) {
+  try {
+    const _u = new URL(process.env.DATABASE_URL);
+    console.log(
+      `[db] Pool initializing: host=${_u.hostname} port=${_u.port || 5432} db=${_u.pathname.slice(1)}`
+    );
+    if (_u.hostname === 'host' || _u.hostname === 'localhost') {
+      console.error(
+        `[db] WARNING: DATABASE_URL hostname is "${_u.hostname}" — this looks like a placeholder. ` +
+        'Set DATABASE_URL to ${{Postgres.DATABASE_URL}} in Railway Variables to link the PostgreSQL service.'
+      );
+    }
+  } catch {
+    console.error('[db] DATABASE_URL is set but is not a valid URL');
+  }
+} else {
+  console.error('[db] DATABASE_URL is not set — pool will fail on first connect');
+}
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl:
