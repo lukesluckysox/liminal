@@ -8,9 +8,9 @@ const TOOLS = [
     name: 'Small Council',
     tagline: 'Deliberate among divided voices.',
     blurb:
-      'Five advisors — strategist, empiricist, skeptic, advocate, historian — debate your dilemma across two rounds and reach a synthesis. Theatrical, but serious.',
+      'Five voices — The Instinct, The Critic, The Realist, The Shadow, The Sage — debate your dilemma across two rounds and reach a synthesis. Watch the council deliberate in real time.',
     glyph: 'I',
-    accentHue: '184 150 58', // gold
+    accentHue: '184 150 58',
   },
   {
     slug: 'genealogist',
@@ -19,16 +19,16 @@ const TOOLS = [
     blurb:
       'Intellectual archaeology. Where did this conviction come from? What was its function? What does it protect against? What tensions does it carry?',
     glyph: 'II',
-    accentHue: '150 160 120', // sage
+    accentHue: '150 160 120',
   },
   {
     slug: 'interlocutor',
     name: 'The Interlocutor',
-    tagline: 'Test an idea against rigorous questioning.',
+    tagline: 'Submit an argument. Receive its full examination.',
     blurb:
-      'Socratic sparring for arguments and theses. Assumptions exposed, objections mounted, formulations improved. Not to destroy — to strengthen.',
+      'Socratic examination in six parts. Assumptions exposed, objections mounted, weak spots named, better formulations offered. Not to destroy — to strengthen.',
     glyph: 'III',
-    accentHue: '120 148 180', // steel blue
+    accentHue: '120 148 180',
   },
   {
     slug: 'stoics-ledger',
@@ -37,27 +37,49 @@ const TOOLS = [
     blurb:
       'A daily accountability practice in the tradition of Marcus Aurelius. Duties met, duties neglected, avoidances named, excuses detected. One maxim. One act of repair.',
     glyph: 'IV',
-    accentHue: '172 142 100', // amber
+    accentHue: '148 140 124',
   },
   {
     slug: 'fool',
     name: 'The Fool',
     tagline: 'Hear the strongest case that you are wrong.',
     blurb:
-      'The one voice permitted to say what no one else will. Blind spots, risks, reputational dangers, second-order effects — mounted without mercy, but without dishonesty.',
+      'The one voice permitted to say what no one else will. Blind spots, risks, reputational dangers, second-order effects, rival interpretations — mounted without mercy, but without dishonesty.',
     glyph: 'V',
-    accentHue: '180 100 100', // muted crimson
+    accentHue: '180 100 100',
   },
   {
     slug: 'interpreter',
     name: 'The Interpreter',
     tagline: 'Hold a symbol beneath multiple lights.',
     blurb:
-      'Five interpretive lenses — Jungian, Narrative, Somatic, Cultural, Existential — applied simultaneously to a dream, symbol, or recurring pattern. Illumination through divergence.',
+      'Five interpretive lenses — Jungian, Narrative, Somatic, Cultural/Historical, Existential — applied simultaneously to a dream, symbol, or recurring pattern. Each lens also names what it cannot see.',
     glyph: 'VI',
-    accentHue: '140 120 180', // violet
+    accentHue: '128 108 172',
   },
 ] as const;
+
+// ── Static example session for homepage preview ───────────────────────────────
+// Rendered as a realistic-looking session excerpt (The Fool) so visitors
+// understand what output looks like before signing up.
+
+const EXAMPLE_TOOL = 'The Fool';
+const EXAMPLE_TOOL_ACCENT = '180 100 100';
+const EXAMPLE_QUESTION = '"I should leave my job and go independent."';
+const EXAMPLE_SECTIONS = [
+  {
+    label: 'Core Claim',
+    text: 'You believe that leaving your current employment to work independently will produce better outcomes — financially, creatively, or in terms of autonomy — than remaining where you are.',
+  },
+  {
+    label: 'Why You Are Wrong',
+    text: 'The strongest case against this is not that independence is bad — it is that you are underestimating the structural value of what you currently have. Stable income eliminates a class of decisions that consume enormous cognitive and emotional bandwidth. The freedom you are imagining — time, autonomy, creative control — exists only in the absence of client dependency, which is simply a different, less legible form of employment. Most people who go independent discover they have traded one boss for many.',
+  },
+  {
+    label: 'Rival Interpretation',
+    text: "The most charitable reading of your situation is not that you are ready to leave, but that you are ready to renegotiate. The discomfort driving this decision may be addressable within your current context. You may be solving for the wrong variable.",
+  },
+];
 
 export default async function Home() {
   const user = await getSession();
@@ -161,12 +183,163 @@ export default async function Home() {
               gridTemplateColumns:
                 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))',
               gap: '1.25rem',
-              paddingBottom: 'clamp(4rem, 8vw, 8rem)',
+              paddingBottom: 'clamp(4rem, 8vw, 7rem)',
             }}
           >
             {TOOLS.map((tool) => (
               <ToolCard key={tool.slug} tool={tool} authenticated={!!user} />
             ))}
+          </div>
+        </section>
+
+        {/* ── Example Session Preview ────────────────────────────────────────── */}
+        <section
+          aria-label="Example session"
+          style={{
+            borderTop: '1px solid rgb(var(--color-border) / 0.1)',
+            paddingTop: 'clamp(3rem, 6vw, 5rem)',
+            paddingBottom: 'clamp(4rem, 8vw, 7rem)',
+          }}
+        >
+          {/* Section label */}
+          <p
+            style={{
+              fontSize: 'clamp(0.7rem, 0.65rem + 0.2vw, 0.75rem)',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'rgb(var(--color-text-faint))',
+              marginBottom: '2rem',
+              fontWeight: 500,
+            }}
+          >
+            From a session
+          </p>
+
+          <div
+            style={{
+              maxWidth: '680px',
+            }}
+          >
+            {/* Session header */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.625rem',
+                marginBottom: '1rem',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 'clamp(0.65rem, 0.6rem + 0.15vw, 0.7rem)',
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: `rgb(${EXAMPLE_TOOL_ACCENT})`,
+                }}
+              >
+                {EXAMPLE_TOOL}
+              </span>
+            </div>
+
+            <h2
+              style={{
+                fontFamily: 'var(--font-display), Georgia, serif',
+                fontSize: 'clamp(1.125rem, 1rem + 0.6vw, 1.5rem)',
+                fontWeight: 400,
+                fontStyle: 'italic',
+                color: 'rgb(var(--color-text))',
+                marginBottom: '2rem',
+                lineHeight: 1.2,
+              }}
+            >
+              {EXAMPLE_QUESTION}
+            </h2>
+
+            {/* Example output sections */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {EXAMPLE_SECTIONS.map((section) => (
+                <div
+                  key={section.label}
+                  style={{
+                    padding: '1.25rem 1.375rem',
+                    background: 'rgb(var(--color-surface))',
+                    borderRadius: '6px',
+                    border: '1px solid rgb(var(--color-border) / 0.08)',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 'clamp(0.65rem, 0.6rem + 0.15vw, 0.7rem)',
+                      fontWeight: 700,
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      color: 'rgb(var(--color-gold))',
+                      marginBottom: '0.625rem',
+                    }}
+                  >
+                    {section.label}
+                  </div>
+                  <p
+                    style={{
+                      fontSize: 'clamp(0.875rem, 0.8rem + 0.3vw, 0.9375rem)',
+                      color: 'rgb(var(--color-text-muted))',
+                      lineHeight: 1.7,
+                    }}
+                  >
+                    {section.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Fade gradient + CTA */}
+            <div
+              style={{
+                position: 'relative',
+                marginTop: '-1rem',
+                height: '6rem',
+                background:
+                  'linear-gradient(to bottom, transparent, rgb(var(--color-bg)))',
+                display: 'flex',
+                alignItems: 'flex-end',
+                paddingBottom: '0.25rem',
+              }}
+              aria-hidden="true"
+            />
+
+            {!user && (
+              <div
+                style={{
+                  marginTop: '0.5rem',
+                  display: 'flex',
+                  gap: '1rem',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <Link
+                  href="/signup"
+                  className="btn-primary"
+                  style={{
+                    textDecoration: 'none',
+                    fontSize: '0.9375rem',
+                    padding: '0.7rem 1.75rem',
+                  }}
+                >
+                  Begin
+                </Link>
+                <span
+                  style={{
+                    fontSize: 'clamp(0.875rem, 0.8rem + 0.25vw, 1rem)',
+                    color: 'rgb(var(--color-text-faint))',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  Free to start. No credit card.
+                </span>
+              </div>
+            )}
           </div>
         </section>
       </main>

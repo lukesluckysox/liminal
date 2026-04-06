@@ -3,8 +3,11 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Nav } from '@/components/nav';
 import { SessionOutput } from '@/components/session-output';
+import { DeleteSessionButton } from '@/components/delete-session-button';
+import { SessionOutputErrorBoundary } from '@/components/session-output-error-boundary';
 import { getSession } from '@/lib/auth/session';
 import { queryOne } from '@/lib/db';
+import { TOOL_LABELS, TOOL_ACCENTS } from '@/lib/tools/constants';
 
 interface ToolSession {
   id: string;
@@ -15,31 +18,20 @@ interface ToolSession {
   created_at: Date;
 }
 
-const TOOL_LABELS: Record<string, string> = {
-  'small-council':  'Small Council',
-  genealogist:      'The Genealogist',
-  interlocutor:     'The Interlocutor',
-  'stoics-ledger':  "The Stoic's Ledger",
-  fool:             'The Fool',
-  interpreter:      'The Interpreter',
-};
-
-const TOOL_ACCENT: Record<string, string> = {
-  'small-council':  '184 150 58',
-  genealogist:      '150 160 120',
-  interlocutor:     '120 148 180',
-  'stoics-ledger':  '172 142 100',
-  fool:             '180 100 100',
-  interpreter:      '140 120 180',
-};
-
 interface PageProps {
   params: { sessionId: string };
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  // Fetch just the title for metadata (no auth check needed for title)
+  const row = await queryOne<{ title: string; tool_slug: string }>(
+    `SELECT title, tool_slug FROM tool_sessions WHERE id = $1`,
+    [params.sessionId]
+  );
+  if (!row) return { title: 'Session — Liminal' };
+  const toolLabel = TOOL_LABELS[row.tool_slug] ?? row.tool_slug;
   return {
-    title: `Session — Liminal`,
+    title: `${row.title} — ${toolLabel} — Liminal`,
   };
 }
 
@@ -56,7 +48,7 @@ export default async function SessionPage({ params }: PageProps) {
 
   if (!session) notFound();
 
-  const ac = TOOL_ACCENT[session.tool_slug] ?? '184 150 58';
+  const ac = TOOL_ACCENTS[session.tool_slug] ?? '184 150 58';
   const toolLabel = TOOL_LABELS[session.tool_slug] ?? session.tool_slug;
   const toolHref = `/tool/${session.tool_slug}`;
 
@@ -188,10 +180,12 @@ export default async function SessionPage({ params }: PageProps) {
 
         {/* Output */}
         <div className="animate-result">
-          <SessionOutput
-            toolSlug={session.tool_slug}
-            output={session.structured_output}
-          />
+          <SessionOutputErrorBoundary>
+            <SessionOutput
+              toolSlug={session.tool_slug}
+              output={session.structured_output}
+            />
+          </SessionOutputErrorBoundary>
         </div>
 
         {/* Footer actions */}
@@ -207,20 +201,23 @@ export default async function SessionPage({ params }: PageProps) {
             justifyContent: 'space-between',
           }}
         >
-          <Link
-            href={toolHref}
-            className="btn-primary"
-            style={{ textDecoration: 'none', padding: '0.6rem 1.5rem' }}
-          >
-            Use {toolLabel} again
-          </Link>
-          <Link
-            href="/"
-            className="btn-ghost"
-            style={{ textDecoration: 'none' }}
-          >
-            All instruments
-          </Link>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <Link
+              href={toolHref}
+              className="btn-primary"
+              style={{ textDecoration: 'none', padding: '0.6rem 1.5rem' }}
+            >
+              Use {toolLabel} again
+            </Link>
+            <Link
+              href="/"
+              className="btn-ghost"
+              style={{ textDecoration: 'none' }}
+            >
+              All instruments
+            </Link>
+          </div>
+          <DeleteSessionButton sessionId={session.id} redirectTo="/archive" />
         </footer>
       </main>
     </>

@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Nav } from '@/components/nav';
+import { DeleteSessionButton } from '@/components/delete-session-button';
 import { getSession } from '@/lib/auth/session';
 import { query } from '@/lib/db';
+import { TOOL_LABELS, TOOL_ACCENTS } from '@/lib/tools/constants';
 
 export const metadata: Metadata = {
   title: 'Archive — Liminal',
@@ -16,24 +18,6 @@ interface ToolSession {
   summary: string | null;
   created_at: Date;
 }
-
-const TOOL_LABELS: Record<string, string> = {
-  'small-council':  'Small Council',
-  genealogist:      'The Genealogist',
-  interlocutor:     'The Interlocutor',
-  'stoics-ledger':  "The Stoic's Ledger",
-  fool:             'The Fool',
-  interpreter:      'The Interpreter',
-};
-
-const TOOL_ACCENT: Record<string, string> = {
-  'small-council':  '184 150 58',
-  genealogist:      '150 160 120',
-  interlocutor:     '120 148 180',
-  'stoics-ledger':  '172 142 100',
-  fool:             '180 100 100',
-  interpreter:      '140 120 180',
-};
 
 export default async function ArchivePage() {
   const user = await getSession();
@@ -133,7 +117,7 @@ export default async function ArchivePage() {
             style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
           >
             {sessions.map((session) => {
-              const ac = TOOL_ACCENT[session.tool_slug] ?? '184 150 58';
+              const ac = TOOL_ACCENTS[session.tool_slug] ?? '184 150 58';
               const label = TOOL_LABELS[session.tool_slug] ?? session.tool_slug;
               const date = new Date(session.created_at).toLocaleDateString(
                 'en-US',
@@ -141,88 +125,107 @@ export default async function ArchivePage() {
               );
 
               return (
-                <Link
+                <div
                   key={session.id}
-                  href={`/session/${session.id}`}
-                  className="liminal-card"
-                  style={{
-                    display: 'block',
-                    padding: '1.125rem 1.375rem',
-                    textDecoration: 'none',
-                  }}
+                  style={{ position: 'relative' }}
                 >
-                  {/* Meta row */}
+                  <Link
+                    href={`/session/${session.id}`}
+                    className="liminal-card"
+                    style={{
+                      display: 'block',
+                      padding: '1.125rem 1.375rem 1.125rem 1.375rem',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    {/* Meta row */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.625rem',
+                        marginBottom: '0.5rem',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 'clamp(0.65rem, 0.6rem + 0.15vw, 0.7rem)',
+                          fontWeight: 700,
+                          letterSpacing: '0.1em',
+                          textTransform: 'uppercase',
+                          color: `rgb(${ac})`,
+                        }}
+                      >
+                        {label}
+                      </span>
+                      <span
+                        style={{
+                          width: '3px',
+                          height: '3px',
+                          borderRadius: '50%',
+                          background: `rgb(${ac} / 0.3)`,
+                          display: 'inline-block',
+                          flexShrink: 0,
+                        }}
+                        aria-hidden="true"
+                      />
+                      <span
+                        style={{
+                          fontSize: 'clamp(0.65rem, 0.6rem + 0.15vw, 0.7rem)',
+                          color: 'rgb(var(--color-text-faint))',
+                          letterSpacing: '0.03em',
+                        }}
+                      >
+                        {date}
+                      </span>
+                    </div>
+
+                    {/* Title */}
+                    <h2
+                      style={{
+                        fontSize: 'clamp(0.875rem, 0.8rem + 0.3vw, 1rem)',
+                        fontWeight: 500,
+                        color: 'rgb(var(--color-text))',
+                        lineHeight: 1.4,
+                        marginBottom: session.summary ? '0.375rem' : 0,
+                        paddingRight: '4rem', // space for delete button
+                      }}
+                    >
+                      {session.title}
+                    </h2>
+
+                    {/* Summary */}
+                    {session.summary && (
+                      <p
+                        style={{
+                          fontSize: 'clamp(0.8rem, 0.75rem + 0.2vw, 0.875rem)',
+                          color: 'rgb(var(--color-text-muted))',
+                          lineHeight: 1.5,
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                        }}
+                      >
+                        {session.summary}
+                      </p>
+                    )}
+                  </Link>
+
+                  {/* Delete button — positioned outside the Link to avoid nesting */}
                   <div
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.625rem',
-                      marginBottom: '0.5rem',
+                      position: 'absolute',
+                      top: '1.125rem',
+                      right: '1.375rem',
                     }}
                   >
-                    <span
-                      style={{
-                        fontSize: 'clamp(0.65rem, 0.6rem + 0.15vw, 0.7rem)',
-                        fontWeight: 700,
-                        letterSpacing: '0.1em',
-                        textTransform: 'uppercase',
-                        color: `rgb(${ac})`,
-                      }}
-                    >
-                      {label}
-                    </span>
-                    <span
-                      style={{
-                        width: '3px',
-                        height: '3px',
-                        borderRadius: '50%',
-                        background: `rgb(${ac} / 0.3)`,
-                        display: 'inline-block',
-                        flexShrink: 0,
-                      }}
-                      aria-hidden="true"
+                    <DeleteSessionButton
+                      sessionId={session.id}
+                      redirectTo="/archive"
                     />
-                    <span
-                      style={{
-                        fontSize: 'clamp(0.65rem, 0.6rem + 0.15vw, 0.7rem)',
-                        color: 'rgb(var(--color-text-faint))',
-                        letterSpacing: '0.03em',
-                      }}
-                    >
-                      {date}
-                    </span>
                   </div>
-
-                  {/* Title */}
-                  <h2
-                    style={{
-                      fontSize: 'clamp(0.875rem, 0.8rem + 0.3vw, 1rem)',
-                      fontWeight: 500,
-                      color: 'rgb(var(--color-text))',
-                      lineHeight: 1.4,
-                      marginBottom: session.summary ? '0.375rem' : 0,
-                    }}
-                  >
-                    {session.title}
-                  </h2>
-
-                  {/* Summary */}
-                  {session.summary && (
-                    <p
-                      style={{
-                        fontSize: 'clamp(0.8rem, 0.75rem + 0.2vw, 0.875rem)',
-                        color: 'rgb(var(--color-text-muted))',
-                        lineHeight: 1.5,
-                        overflow: 'hidden',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                      }}
-                    >
-                      {session.summary}
-                    </p>
-                  )}
-                </Link>
+                </div>
               );
             })}
           </div>

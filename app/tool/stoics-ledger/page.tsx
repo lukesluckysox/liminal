@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     'A daily self-accountability practice in the tradition of Marcus Aurelius.',
 };
 
+const ACCENT = '148 140 124';
+
 export default async function StoicsLedgerPage() {
   const user = await getSession();
 
@@ -32,10 +34,41 @@ export default async function StoicsLedgerPage() {
 
 Write plainly. The Ledger is not a journal — it is a reckoning.`,
             inputFieldName: 'report',
-            minLength: 20,
+            minLength: 80,
             submitLabel: 'Open the ledger',
             processingLabel: 'The Ledger is reviewing your account…',
-            accentHue: '172 142 100',
+            accentHue: ACCENT,
+            preamble: (
+              <div
+                style={{
+                  padding: '1.25rem 1.5rem',
+                  background: 'rgb(var(--color-surface-2))',
+                  borderRadius: '6px',
+                  border: '1px solid rgb(var(--color-border) / 0.1)',
+                  fontSize: 'clamp(0.8rem, 0.75rem + 0.2vw, 0.875rem)',
+                  color: 'rgb(var(--color-text-muted))',
+                  lineHeight: 1.65,
+                }}
+              >
+                <strong
+                  style={{
+                    color: `rgb(${ACCENT})`,
+                    display: 'block',
+                    marginBottom: '0.375rem',
+                    fontSize: 'clamp(0.7rem, 0.65rem + 0.2vw, 0.75rem)',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  In the tradition of the evening review
+                </strong>
+                Marcus Aurelius, Epictetus, and the Stoic tradition practiced a nightly
+                review of the day's conduct — not to punish, but to see clearly. The Ledger
+                returns a conduct review, duties met and neglected, avoidances named, excuses
+                detected, one maxim derived from today's specifics, and one concrete act of
+                repair. This is not therapy. It is a reckoning.
+              </div>
+            ),
           }}
         />
       </main>
