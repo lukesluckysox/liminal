@@ -59,27 +59,45 @@ const TOOLS = [
   },
 ] as const;
 
-// ── Static example session for homepage preview ───────────────────────────────
-// Rendered as a realistic-looking session excerpt (The Fool) so visitors
-// understand what output looks like before signing up.
+// ── Small Council example session ─────────────────────────────────────────────
+// Individual accent colors per advisor — each maps to a distinct epistemic
+// stance and intentionally echoes the palette of the other five tools.
+const COUNCIL_ADVISORS = [
+  {
+    name: 'The Instinct',
+    accent: '200 140 80',   // warm terra cotta — embodied knowing
+    stance:
+      'Something in you already knows the answer. The fact that you are asking this suggests the timing — not the direction — may be the real problem.',
+  },
+  {
+    name: 'The Critic',
+    accent: '120 148 180',  // steel blue — analytical precision
+    stance:
+      'Your runway assumptions are optimistic. Have you modeled three consecutive months of zero revenue? Because that is the test, not the good-case scenario.',
+  },
+  {
+    name: 'The Realist',
+    accent: '150 160 120',  // sage — grounded constraint
+    stance:
+      'The first client takes longer than anyone expects. Savings trajectory matters more than conviction, and conviction will not cover your rent in month four.',
+  },
+  {
+    name: 'The Shadow',
+    accent: '128 108 172',  // violet — hidden motive
+    stance:
+      'You may not be running toward independence. You may be running away from accountability — a distinction that will become clear about six months in.',
+  },
+  {
+    name: 'The Sage',
+    accent: '184 150 58',   // gold — accumulated wisdom
+    stance:
+      'Every generation believes its moment is uniquely suited to independence. Some are right. The question is what, specifically, differentiates those who succeed.',
+  },
+] as const;
 
-const EXAMPLE_TOOL = 'The Fool';
-const EXAMPLE_TOOL_ACCENT = '180 100 100';
-const EXAMPLE_QUESTION = '"I should leave my job and go independent."';
-const EXAMPLE_SECTIONS = [
-  {
-    label: 'Core Claim',
-    text: 'You believe that leaving your current employment to work independently will produce better outcomes — financially, creatively, or in terms of autonomy — than remaining where you are.',
-  },
-  {
-    label: 'Why You Are Wrong',
-    text: 'The strongest case against this is not that independence is bad — it is that you are underestimating the structural value of what you currently have. Stable income eliminates a class of decisions that consume enormous cognitive and emotional bandwidth. The freedom you are imagining — time, autonomy, creative control — exists only in the absence of client dependency, which is simply a different, less legible form of employment. Most people who go independent discover they have traded one boss for many.',
-  },
-  {
-    label: 'Rival Interpretation',
-    text: "The most charitable reading of your situation is not that you are ready to leave, but that you are ready to renegotiate. The discomfort driving this decision may be addressable within your current context. You may be solving for the wrong variable.",
-  },
-];
+const COUNCIL_QUESTION = '"Should I leave my job and go independent?"';
+const COUNCIL_SYNTHESIS =
+  `The council is divided on timing, not direction. The Instinct and Sage allow for the possibility; The Critic and Realist demand that the material case be made first. The Shadow\u2019s reading \u2014 that avoidance may be driving the urgency \u2014 is the question none of the others can answer for you.`;
 
 export default async function Home() {
   const user = await getSession();
@@ -192,9 +210,9 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* ── Example Session Preview ────────────────────────────────────────── */}
+        {/* ── Small Council Preview ──────────────────────────────────────────── */}
         <section
-          aria-label="Example session"
+          aria-label="Small Council example session"
           style={{
             borderTop: '1px solid rgb(var(--color-border) / 0.1)',
             paddingTop: 'clamp(3rem, 6vw, 5rem)',
@@ -212,36 +230,11 @@ export default async function Home() {
               fontWeight: 500,
             }}
           >
-            From a session
+            From a session — Small Council
           </p>
 
-          <div
-            style={{
-              maxWidth: '680px',
-            }}
-          >
-            {/* Session header */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.625rem',
-                marginBottom: '1rem',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 'clamp(0.65rem, 0.6rem + 0.15vw, 0.7rem)',
-                  fontWeight: 700,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  color: `rgb(${EXAMPLE_TOOL_ACCENT})`,
-                }}
-              >
-                {EXAMPLE_TOOL}
-              </span>
-            </div>
-
+          <div style={{ maxWidth: '700px' }}>
+            {/* Question */}
             <h2
               style={{
                 fontFamily: 'var(--font-display), Georgia, serif',
@@ -253,65 +246,109 @@ export default async function Home() {
                 lineHeight: 1.2,
               }}
             >
-              {EXAMPLE_QUESTION}
+              {COUNCIL_QUESTION}
             </h2>
 
-            {/* Example output sections */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {EXAMPLE_SECTIONS.map((section) => (
+            {/* Advisor cards */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+              {COUNCIL_ADVISORS.map((advisor) => (
                 <div
-                  key={section.label}
+                  key={advisor.name}
                   style={{
-                    padding: '1.25rem 1.375rem',
+                    display: 'grid',
+                    gridTemplateColumns: '10rem 1fr',
+                    gap: '1.25rem',
+                    padding: '1rem 1.25rem',
                     background: 'rgb(var(--color-surface))',
                     borderRadius: '6px',
                     border: '1px solid rgb(var(--color-border) / 0.08)',
+                    alignItems: 'start',
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: 'clamp(0.65rem, 0.6rem + 0.15vw, 0.7rem)',
-                      fontWeight: 700,
-                      letterSpacing: '0.1em',
-                      textTransform: 'uppercase',
-                      color: 'rgb(var(--color-gold))',
-                      marginBottom: '0.625rem',
-                    }}
-                  >
-                    {section.label}
+                  {/* Advisor name */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingTop: '0.1rem' }}>
+                    <div
+                      style={{
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        background: `rgb(${advisor.accent})`,
+                        flexShrink: 0,
+                        opacity: 0.85,
+                      }}
+                      aria-hidden="true"
+                    />
+                    <span
+                      style={{
+                        fontSize: 'clamp(0.65rem, 0.6rem + 0.15vw, 0.7rem)',
+                        fontWeight: 700,
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase',
+                        color: `rgb(${advisor.accent})`,
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {advisor.name}
+                    </span>
                   </div>
+
+                  {/* Stance */}
                   <p
                     style={{
                       fontSize: 'clamp(0.875rem, 0.8rem + 0.3vw, 0.9375rem)',
                       color: 'rgb(var(--color-text-muted))',
-                      lineHeight: 1.7,
+                      lineHeight: 1.6,
+                      fontStyle: 'italic',
                     }}
                   >
-                    {section.text}
+                    {advisor.stance}
                   </p>
                 </div>
               ))}
             </div>
 
-            {/* Fade gradient + CTA */}
+            {/* Synthesis strip */}
             <div
               style={{
-                position: 'relative',
-                marginTop: '-1rem',
-                height: '6rem',
-                background:
-                  'linear-gradient(to bottom, transparent, rgb(var(--color-bg)))',
-                display: 'flex',
-                alignItems: 'flex-end',
-                paddingBottom: '0.25rem',
+                marginTop: '0.625rem',
+                padding: '1rem 1.25rem',
+                background: 'rgb(var(--color-surface-2))',
+                borderRadius: '6px',
+                border: '1px solid rgb(var(--color-gold) / 0.12)',
+                display: 'grid',
+                gridTemplateColumns: '10rem 1fr',
+                gap: '1.25rem',
+                alignItems: 'start',
               }}
-              aria-hidden="true"
-            />
+            >
+              <span
+                style={{
+                  fontSize: 'clamp(0.65rem, 0.6rem + 0.15vw, 0.7rem)',
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: 'rgb(var(--color-gold))',
+                  paddingTop: '0.1rem',
+                }}
+              >
+                Synthesis
+              </span>
+              <p
+                style={{
+                  fontSize: 'clamp(0.875rem, 0.8rem + 0.3vw, 0.9375rem)',
+                  color: 'rgb(var(--color-text-muted))',
+                  lineHeight: 1.6,
+                }}
+              >
+                {COUNCIL_SYNTHESIS}
+              </p>
+            </div>
 
+            {/* Fade + CTA */}
             {!user && (
               <div
                 style={{
-                  marginTop: '0.5rem',
+                  marginTop: '2.5rem',
                   display: 'flex',
                   gap: '1rem',
                   alignItems: 'center',
@@ -336,7 +373,7 @@ export default async function Home() {
                     fontStyle: 'italic',
                   }}
                 >
-                  Free to start. No credit card.
+                  Free to start.
                 </span>
               </div>
             )}
@@ -371,7 +408,7 @@ function ToolCard({
         cursor: 'pointer',
       }}
     >
-      {/* Glyph accent */}
+      {/* Glyph */}
       <div
         style={{
           position: 'absolute',
@@ -401,7 +438,6 @@ function ToolCard({
         aria-hidden="true"
       />
 
-      {/* Name */}
       <h2
         style={{
           fontFamily: 'var(--font-display), Georgia, serif',
@@ -415,7 +451,6 @@ function ToolCard({
         {tool.name}
       </h2>
 
-      {/* Tagline */}
       <p
         style={{
           fontSize: 'clamp(0.8rem, 0.75rem + 0.2vw, 0.9rem)',
@@ -428,7 +463,6 @@ function ToolCard({
         {tool.tagline}
       </p>
 
-      {/* Blurb */}
       <p
         style={{
           fontSize: 'clamp(0.875rem, 0.8rem + 0.3vw, 0.9375rem)',
@@ -440,7 +474,6 @@ function ToolCard({
         {tool.blurb}
       </p>
 
-      {/* Enter arrow */}
       <div
         style={{
           marginTop: '1.5rem',
