@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { Nav } from '@/components/nav';
+import { HexProgress } from '@/components/hex-progress';
 import { getSession } from '@/lib/auth/session';
+import { query } from '@/lib/db';
+import { computeStreak, getRecentDays } from '@/lib/user-progress';
 
 // ── Tool registry ──────────────────────────────────────────────────────────────
 const TOOLS = [
@@ -102,6 +105,32 @@ const COUNCIL_SYNTHESIS =
 export default async function Home() {
   const user = await getSession();
 
+  // Progress data — only fetched when authenticated
+  let usedSlugs: string[]   = [];
+  let streak                = 0;
+  let recentDays: boolean[] = Array(7).fill(false);
+
+  if (user) {
+    const [usedRows, activityRows] = await Promise.all([
+      query<{ tool_slug: string }>(
+        `SELECT DISTINCT tool_slug FROM tool_sessions WHERE user_id = $1`,
+        [user.id]
+      ),
+      query<{ day: string }>(
+        `SELECT DISTINCT DATE(created_at) AS day
+         FROM tool_sessions
+         WHERE user_id = $1
+         ORDER BY day DESC
+         LIMIT 90`,
+        [user.id]
+      ),
+    ]);
+    usedSlugs   = usedRows.map((r) => r.tool_slug);
+    const dates = activityRows.map((r) => new Date(r.day));
+    streak      = computeStreak(dates);
+    recentDays  = getRecentDays(dates);
+  }
+
   // Split tools into left and right columns (alternating by index)
   const leftTools  = TOOLS.filter((_, i) => i % 2 === 0);
   const rightTools = TOOLS.filter((_, i) => i % 2 === 1);
@@ -126,10 +155,27 @@ export default async function Home() {
         >
           <p
             className="eyebrow"
-            style={{ marginBottom: '1.5rem' }}
+            style={{ marginBottom: user ? '1.75rem' : '1.5rem' }}
           >
             Liminal — A Cabinet of Instruments
           </p>
+
+          {/* ── Progress widget (authenticated users only) ─ */}
+          {user && (
+            <div
+              style={{
+                paddingBottom: 'clamp(1.5rem, 3vw, 2rem)',
+                marginBottom: 'clamp(1.5rem, 3vw, 2rem)',
+                borderBottom: '1px solid rgb(var(--color-border) / 0.08)',
+              }}
+            >
+              <HexProgress
+                usedSlugs={usedSlugs}
+                streak={streak}
+                recentDays={recentDays}
+              />
+            </div>
+          )}
 
           <h1
             className="text-display"

@@ -2,9 +2,11 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Nav } from '@/components/nav';
 import { DeleteSessionButton } from '@/components/delete-session-button';
+import { HexProgress } from '@/components/hex-progress';
 import { getSession } from '@/lib/auth/session';
 import { query } from '@/lib/db';
 import { TOOL_LABELS, TOOL_ACCENTS } from '@/lib/tools/constants';
+import { computeStreak, getRecentDays } from '@/lib/user-progress';
 
 export const metadata: Metadata = {
   title: 'Archive — Liminal',
@@ -22,14 +24,33 @@ interface ToolSession {
 export default async function ArchivePage() {
   const user = await getSession();
 
-  const sessions = await query<ToolSession>(
-    `SELECT id, tool_slug, title, summary, created_at
-     FROM tool_sessions
-     WHERE user_id = $1
-     ORDER BY created_at DESC
-     LIMIT 100`,
-    [user!.id]
-  );
+  const [sessions, usedRows, activityRows] = await Promise.all([
+    query<ToolSession>(
+      `SELECT id, tool_slug, title, summary, created_at
+       FROM tool_sessions
+       WHERE user_id = $1
+       ORDER BY created_at DESC
+       LIMIT 100`,
+      [user!.id]
+    ),
+    query<{ tool_slug: string }>(
+      `SELECT DISTINCT tool_slug FROM tool_sessions WHERE user_id = $1`,
+      [user!.id]
+    ),
+    query<{ day: string }>(
+      `SELECT DISTINCT DATE(created_at) AS day
+       FROM tool_sessions
+       WHERE user_id = $1
+       ORDER BY day DESC
+       LIMIT 90`,
+      [user!.id]
+    ),
+  ]);
+
+  const usedSlugs  = usedRows.map((r) => r.tool_slug);
+  const dates      = activityRows.map((r) => new Date(r.day));
+  const streak     = computeStreak(dates);
+  const recentDays = getRecentDays(dates);
 
   return (
     <>
@@ -59,12 +80,27 @@ export default async function ArchivePage() {
             style={{
               fontSize: 'clamp(0.875rem, 0.8rem + 0.25vw, 1rem)',
               color: 'rgb(var(--color-text-muted))',
+              marginBottom: 'clamp(1.75rem, 3.5vw, 2.5rem)',
             }}
           >
             {sessions.length === 0
               ? 'No sessions yet.'
               : `${sessions.length} session${sessions.length !== 1 ? 's' : ''} recorded.`}
           </p>
+
+          {/* Hex progress — always visible on archive */}
+          <div
+            style={{
+              paddingBottom: 'clamp(1.5rem, 3vw, 2rem)',
+              borderBottom: '1px solid rgb(var(--color-border) / 0.08)',
+            }}
+          >
+            <HexProgress
+              usedSlugs={usedSlugs}
+              streak={streak}
+              recentDays={recentDays}
+            />
+          </div>
         </header>
 
         {sessions.length === 0 ? (
