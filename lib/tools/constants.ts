@@ -1,12 +1,12 @@
 /** Single source of truth for tool identity across the app. */
 
 export const TOOL_ACCENTS: Record<string, string> = {
-  'small-council': '184 150 58',   // gold
-  'genealogist':   '150 160 120',  // sage
-  'interlocutor':  '120 148 180',  // steel blue
-  'stoics-ledger': '148 140 124',  // stone — deliberately austere, not gold
-  'fool':          '180 100 100',  // muted crimson
-  'interpreter':   '128 108 172',  // deep violet
+  'small-council': '198 167 92',   // burnished gold
+  'genealogist':   '110 124 115',  // oxidized bronze
+  'interlocutor':  '108 128 155',  // muted steel blue
+  'stoics-ledger': '130 122 108',  // stone — austere, not gold
+  'fool':          '152  88  88',  // muted crimson
+  'interpreter':   '107  90 110',  // dusty plum
 };
 
 export const TOOL_LABELS: Record<string, string> = {

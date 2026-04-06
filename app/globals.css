@@ -9,26 +9,32 @@
   --font-body: 'Satoshi';
 
   /* Color tokens as RGB triples (for Tailwind opacity modifiers) */
-  /* Dark surfaces — near-black with warm brown undertone */
-  --color-bg:        12 11 9;
-  --color-surface:   17 16 11;
-  --color-surface-2: 24 22 16;
-  --color-surface-3: 32 29 22;
-  --color-border:    196 180 148;   /* warm parchment, used at low opacity */
+  /* Midnight ink — cool dark blue-black, like Aristotle's study at midnight */
+  --color-bg:        15 23 32;
+  --color-surface:   21 31 43;
+  --color-surface-2: 28 40 54;
+  --color-surface-3: 36 50 66;
+  --color-border:    198 167 92;   /* burnished gold, used at low opacity for borders */
 
-  /* Text — parchment tones */
-  --color-text:       210 205 195;
-  --color-text-muted: 130 124 112;
-  --color-text-faint:  62  58  51;
+  /* Text — aged parchment tones */
+  --color-text:       232 226 214;
+  --color-text-muted: 158 150 136;
+  --color-text-faint:  82  78  72;
 
-  /* Gold accent — restrained, not bright */
-  --color-gold:       184 150  58;
-  --color-gold-hover: 212 174  72;
-  --color-gold-muted: 122  98  32;
-  --color-gold-dim:    64  50  18;
+  /* Burnished gold — aged, not bright */
+  --color-gold:       198 167  92;
+  --color-gold-hover: 218 187 108;
+  --color-gold-muted: 140 118  66;
+  --color-gold-dim:    68  54  30;
+
+  /* Oxidized bronze — earthy, grounded */
+  --color-bronze:     110 124 115;
+
+  /* Dusty plum — symbolic, Jungian */
+  --color-plum:       107  90 110;
 
   /* Semantic */
-  --color-error:   166  66  52;
+  --color-error:   158  72  60;
   --color-success:  72 122  56;
 }
 
@@ -87,7 +93,7 @@ button { cursor: pointer; }
 ul[role='list'], ol[role='list'] { list-style: none; }
 
 ::selection {
-  background: rgba(184, 150, 58, 0.25);
+  background: rgba(198, 167, 92, 0.22);
   color: rgb(var(--color-text));
 }
 
@@ -156,7 +162,7 @@ ul[role='list'], ol[role='list'] { list-style: none; }
   gap: 0.5rem;
   padding: 0.6rem 1.5rem;
   background: rgb(var(--color-gold));
-  color: rgb(12 11 9);
+  color: rgb(15 23 32);
   font-size: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
   font-weight: 500;
   border-radius: 4px;
@@ -327,4 +333,104 @@ ul[role='list'], ol[role='list'] { list-style: none; }
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+/* ─── Hexagon Layout ───────────────────────────────────────────────── */
+
+.hex-scene {
+  position: relative;
+  width: 900px;
+  max-width: 100%;
+  height: 720px;
+  margin: 0 auto;
+}
+
+.hex-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hex-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  z-index: 1;
+  user-select: none;
+}
+
+.hex-card {
+  position: absolute;
+  width: 148px;
+  transform: translate(-50%, -50%);
+  padding: 0.9375rem 1rem;
+  background: rgb(var(--color-surface));
+  border: 1px solid rgb(var(--color-border) / 0.1);
+  border-radius: 8px;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3125rem;
+  z-index: 2;
+  transition:
+    border-color 220ms ease,
+    background 220ms ease,
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 240ms ease;
+}
+
+.hex-card:hover {
+  background: rgb(var(--color-surface-2));
+  border-color: rgb(var(--color-border) / 0.22);
+  transform: translate(-50%, calc(-50% - 4px));
+  box-shadow: 0 12px 36px rgb(0 0 0 / 0.3);
+}
+
+/* Tablet: scale down to fit viewport */
+@media (max-width: 900px) and (min-width: 600px) {
+  .hex-scene {
+    transform: scale(0.72);
+    transform-origin: center top;
+    height: 518px; /* 720 × 0.72 */
+    margin-bottom: -100px;
+  }
+}
+
+/* Mobile: flat grid fallback */
+@media (max-width: 599px) {
+  .hex-scene {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    width: 100%;
+    height: auto;
+  }
+
+  .hex-card {
+    position: static;
+    width: 100%;
+    transform: none;
+  }
+
+  .hex-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .hex-svg,
+  .hex-center {
+    display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .hex-scene {
+    grid-template-columns: 1fr;
+  }
 }

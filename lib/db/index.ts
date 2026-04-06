@@ -59,10 +59,22 @@ export async function initializeDatabase(): Promise<void> {
   if (initPromise) return initPromise;
 
   initPromise = (async () => {
+    if (!process.env.DATABASE_URL) {
+      const err = new Error('[db] DATABASE_URL is not set — cannot connect to PostgreSQL');
+      console.error(err.message);
+      initPromise = null; // Allow retry after env is set
+      throw err;
+    }
     const client = await pool.connect();
     try {
       await client.query(SCHEMA_SQL);
       initialized = true;
+    } catch (err) {
+      // Critical: reset so the next request can retry instead of
+      // permanently returning this rejected promise.
+      console.error('[db] Schema initialization failed:', err);
+      initPromise = null;
+      throw err;
     } finally {
       client.release();
     }

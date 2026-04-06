@@ -5,6 +5,39 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.0] — 2026-04-06
+
+### Fixed
+
+**Auth 500 — poison-state bug in `initializeDatabase()`**
+- When schema initialization failed (transient DB connection, cold start, missing env var), `initPromise` retained the rejected promise permanently. Every subsequent request immediately re-threw that rejection without retrying, causing a persistent 500 on signup and login until the server restarted.
+- Fixed: the catch block now resets `initPromise = null` before re-throwing, so the next request gets a fresh attempt. Concurrent callers during a failing init still share the single rejected promise correctly.
+- Added an explicit guard: if `DATABASE_URL` is unset, throws a clear `[db] DATABASE_URL is not set` error immediately rather than timing out on pool.connect().
+
+### Changed
+
+**Philosophical color palette — full sitewide redesign**
+- Background: midnight ink `#0F1720` (cool, dark blue-black — replaced warm brown-black)
+- Text: aged parchment `#E8E2D6` (readable, warm white against midnight ink)
+- Primary accent: burnished gold `#C6A75C` (more aged and muted than previous `#B8963A`)
+- New tokens: oxidized bronze `--color-bronze` `#6E7C73` and dusty plum `--color-plum` `#6B5A6E`
+- All tool accent colors updated to harmonize with new palette (muted, philosophical):
+  - Small Council → burnished gold · Genealogist → oxidized bronze · Interlocutor → muted steel blue
+  - Stoic's Ledger → stone · The Fool → muted crimson · The Interpreter → dusty plum
+- Council advisor accents updated to match: Instinct → terra cotta · Critic → steel blue · Realist → bronze · Shadow → plum · Sage → gold
+
+**Homepage — hexagonal layout**
+- Six tool cards repositioned from a responsive grid to a hexagonal arrangement: one card at each vertex of a regular hexagon (pointy-top orientation)
+- SVG overlay draws the connecting hexagon outline, six dashed spokes, and a decorative inner portal hexagon at center
+- Center portal shows "liminal / choose your lens" in display italic + small caps
+- Cards are compact (148 × ~120px): glyph, accent bar, name, tagline, enter cue
+- Tablet (600–900px): CSS `scale(0.72)` preserves hex layout at smaller viewports
+- Mobile (<600px): graceful grid fallback (2-col → 1-col), SVG and center portal hidden
+
+---
+
+
+
 ## [1.1.0] — 2026-04-06
 
 ### Added
