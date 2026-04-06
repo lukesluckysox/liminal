@@ -1,6 +1,7 @@
 /**
  * Renders structured output from any of the 6 Liminal tools.
- * Picks the right sub-renderer based on tool_slug.
+ * Editorial idiom: ruled sections, no background boxes, typographic hierarchy.
+ * Each tool has a distinct layout metaphor from the same philosophical quarterly.
  */
 
 import type {
@@ -13,20 +14,41 @@ import type { StoicsLedgerOutput } from '@/lib/tools/stoics-ledger/orchestrator'
 import type { FoolOutput } from '@/lib/tools/fool/orchestrator';
 import type { InterpreterOutput } from '@/lib/tools/interpreter/orchestrator';
 
+/* ─── Tool accent palette (old brass, aged olive, ink hues) ──── */
+
 const TOOL_ACCENT: Record<string, string> = {
-  'small-council':  '184 150 58',
-  genealogist:      '150 160 120',
-  interlocutor:     '120 148 180',
-  'stoics-ledger':  '172 142 100',
-  fool:             '180 100 100',
-  interpreter:      '140 120 180',
+  'small-council': '156 134 84',   // old brass
+  genealogist:     '110 120 98',   // aged olive
+  interlocutor:    '96 116 140',   // ink blue-gray
+  'stoics-ledger': '98 96 88',     // cool stone — very austere
+  fool:            '136 78 70',    // weathered red
+  interpreter:     '104 94 120',   // dusty plum
 };
 
-function accent(slug: string) {
-  return TOOL_ACCENT[slug] ?? '184 150 58';
+/* ─── Council advisor accent palette ────────────────────────── */
+
+const ADVISOR_ACCENTS: Record<string, string> = {
+  'The Instinct': '155 104 58',   // terra cotta
+  'The Critic':    '86 106 136',  // ink blue
+  'The Realist':   '94 110 98',   // bronze-green
+  'The Shadow':    '92  78  98',  // dusty plum
+  'The Sage':     '156 134 84',   // old brass
+};
+
+function accentFor(slug: string) {
+  return TOOL_ACCENT[slug] ?? '156 134 84';
 }
 
-/* ─── Shared primitives ─────────────────────────────────────── */
+/* ─── Shared label style helper ─────────────────────────────── */
+
+const labelCss = {
+  fontSize: 'clamp(0.625rem, 0.58rem + 0.15vw, 0.6875rem)',
+  fontWeight: 600,
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase' as const,
+};
+
+/* ─── Section — ruled heading, no background fill ────────────── */
 
 function Section({
   label,
@@ -40,15 +62,27 @@ function Section({
   return (
     <div className="output-section">
       <div
-        className="output-label"
-        style={{ color: `rgb(${accentHue})` }}
+        style={{
+          paddingBottom: '0.5rem',
+          borderBottom: `1px solid rgb(${accentHue} / 0.18)`,
+          marginBottom: '1.125rem',
+        }}
       >
-        {label}
+        <span
+          style={{
+            ...labelCss,
+            color: `rgb(${accentHue} / 0.75)`,
+          }}
+        >
+          {label}
+        </span>
       </div>
       {children}
     </div>
   );
 }
+
+/* ─── TextBlock — body prose ────────────────────────────────── */
 
 function TextBlock({ text }: { text: string }) {
   return (
@@ -65,6 +99,8 @@ function TextBlock({ text }: { text: string }) {
   );
 }
 
+/* ─── BulletList ─────────────────────────────────────────────── */
+
 function BulletList({ items }: { items: string[] }) {
   return (
     <ul className="output-list" role="list">
@@ -74,6 +110,8 @@ function BulletList({ items }: { items: string[] }) {
     </ul>
   );
 }
+
+/* ─── CalloutBlock — left rule only, no fill, italic serif ───── */
 
 function CalloutBlock({
   text,
@@ -85,10 +123,8 @@ function CalloutBlock({
   return (
     <div
       style={{
-        padding: '1.25rem 1.5rem',
-        borderLeft: `3px solid rgb(${accentHue} / 0.6)`,
-        background: `rgb(${accentHue} / 0.04)`,
-        borderRadius: '0 6px 6px 0',
+        paddingLeft: '1.25rem',
+        borderLeft: `1.5px solid rgb(${accentHue} / 0.35)`,
       }}
     >
       <p
@@ -106,38 +142,41 @@ function CalloutBlock({
   );
 }
 
-/* ─── Small Council ────────────────────────────────────────── */
+/* ─── Small Council — debate folio ──────────────────────────── */
 
-function SmallCouncilOutput({
-  output,
-}: {
-  output: CouncilOutput;
-}) {
-  const ac = accent('small-council');
+function SmallCouncilOutput({ output }: { output: CouncilOutput }) {
+  const ac = accentFor('small-council');
   const round1 = output.turns.filter((t) => t.round === 1);
   const round2 = output.turns.filter((t) => t.round === 2);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* Round 1 */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       <Section label="Round I — Initial Counsel" accent={ac}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {round1.map((turn) => (
-            <AdvisorTurn key={turn.advisor + '1'} turn={turn} accentHue={ac} />
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {round1.map((turn, i) => (
+            <AdvisorTurn
+              key={turn.advisor + '1'}
+              turn={turn}
+              toolAccent={ac}
+              isLast={i === round1.length - 1}
+            />
           ))}
         </div>
       </Section>
 
-      {/* Round 2 */}
       <Section label="Round II — Response" accent={ac}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {round2.map((turn) => (
-            <AdvisorTurn key={turn.advisor + '2'} turn={turn} accentHue={ac} />
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {round2.map((turn, i) => (
+            <AdvisorTurn
+              key={turn.advisor + '2'}
+              turn={turn}
+              toolAccent={ac}
+              isLast={i === round2.length - 1}
+            />
           ))}
         </div>
       </Section>
 
-      {/* Synthesis */}
       <Section label="Synthesis" accent={ac}>
         <TextBlock text={output.synthesis} />
       </Section>
@@ -147,27 +186,29 @@ function SmallCouncilOutput({
 
 function AdvisorTurn({
   turn,
-  accentHue,
+  toolAccent,
+  isLast,
 }: {
   turn: CouncilTurn;
-  accentHue: string;
+  toolAccent: string;
+  isLast: boolean;
 }) {
+  const advisorAccent = ADVISOR_ACCENTS[turn.advisor] ?? toolAccent;
   return (
     <div
       style={{
-        padding: '1rem 1.25rem',
-        background: 'rgb(var(--color-surface-3))',
-        borderRadius: '6px',
+        paddingBottom: '1.25rem',
+        marginBottom: isLast ? 0 : '1.25rem',
+        borderBottom: isLast
+          ? 'none'
+          : `1px solid rgb(${toolAccent} / 0.1)`,
       }}
     >
       <div
         style={{
-          fontSize: 'clamp(0.7rem, 0.65rem + 0.15vw, 0.75rem)',
-          fontWeight: 600,
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          color: `rgb(${accentHue} / 0.8)`,
-          marginBottom: '0.625rem',
+          ...labelCss,
+          color: `rgb(${advisorAccent})`,
+          marginBottom: '0.5rem',
         }}
       >
         {turn.advisor}
@@ -186,28 +227,30 @@ function AdvisorTurn({
   );
 }
 
-/* ─── Genealogist ──────────────────────────────────────────── */
+/* ─── Genealogist — dossier of lineages ─────────────────────── */
 
 function GenealogyOutputView({ output }: { output: GenealogyOutput }) {
-  const ac = accent('genealogist');
+  const ac = accentFor('genealogist');
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       <Section label="The Belief, Restated" accent={ac}>
         <CalloutBlock text={output.belief_statement} accentHue={ac} />
       </Section>
 
       {output.lineages.length > 0 && (
         <Section label="Lineages" accent={ac}>
-          <div
-            style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
-          >
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {output.lineages.map((l, i) => (
               <div
                 key={i}
                 style={{
-                  padding: '0.875rem 1rem',
-                  background: 'rgb(var(--color-surface-3))',
-                  borderRadius: '6px',
+                  paddingBottom: '0.875rem',
+                  marginBottom:
+                    i < output.lineages.length - 1 ? '0.875rem' : 0,
+                  borderBottom:
+                    i < output.lineages.length - 1
+                      ? `1px solid rgb(${ac} / 0.1)`
+                      : 'none',
                 }}
               >
                 <div
@@ -216,6 +259,7 @@ function GenealogyOutputView({ output }: { output: GenealogyOutput }) {
                     fontWeight: 600,
                     color: `rgb(${ac})`,
                     marginBottom: '0.375rem',
+                    letterSpacing: '0.02em',
                   }}
                 >
                   {l.source}
@@ -262,54 +306,28 @@ function GenealogyOutputView({ output }: { output: GenealogyOutput }) {
   );
 }
 
-/* ─── Interlocutor ─────────────────────────────────────────── */
+/* ─── Interlocutor — numbered examination ───────────────────── */
 
-function InterlocutorOutputView({
-  output,
-}: {
-  output: InterlocutorOutput;
-}) {
-  const ac = accent('interlocutor');
+function InterlocutorOutputView({ output }: { output: InterlocutorOutput }) {
+  const ac = accentFor('interlocutor');
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       <Section label="Clarified Thesis" accent={ac}>
         <CalloutBlock text={output.clarified_thesis} accentHue={ac} />
       </Section>
 
       {output.exposed_assumptions.length > 0 && (
         <Section label="Exposed Assumptions" accent={ac}>
-          <div
-            style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
-          >
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {output.exposed_assumptions.map((a, i) => (
-              <div
+              <NumberedEntry
                 key={i}
-                style={{
-                  padding: '0.875rem 1rem',
-                  background: 'rgb(var(--color-surface-3))',
-                  borderRadius: '6px',
-                }}
-              >
-                <div
-                  style={{
-                    fontWeight: 600,
-                    color: 'rgb(var(--color-text))',
-                    marginBottom: '0.375rem',
-                    fontSize: 'clamp(0.875rem, 0.8rem + 0.25vw, 0.9375rem)',
-                  }}
-                >
-                  {a.assumption}
-                </div>
-                <p
-                  style={{
-                    fontSize: 'clamp(0.8rem, 0.75rem + 0.2vw, 0.875rem)',
-                    color: 'rgb(var(--color-text-muted))',
-                    lineHeight: 1.65,
-                  }}
-                >
-                  {a.examination}
-                </p>
-              </div>
+                index={i}
+                total={output.exposed_assumptions.length}
+                accentHue={ac}
+                heading={a.assumption}
+                body={a.examination}
+              />
             ))}
           </div>
         </Section>
@@ -317,38 +335,16 @@ function InterlocutorOutputView({
 
       {output.strong_objections.length > 0 && (
         <Section label="Strong Objections" accent={ac}>
-          <div
-            style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
-          >
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {output.strong_objections.map((o, i) => (
-              <div
+              <NumberedEntry
                 key={i}
-                style={{
-                  padding: '0.875rem 1rem',
-                  background: 'rgb(var(--color-surface-3))',
-                  borderRadius: '6px',
-                }}
-              >
-                <div
-                  style={{
-                    fontWeight: 600,
-                    color: 'rgb(var(--color-text))',
-                    marginBottom: '0.375rem',
-                    fontSize: 'clamp(0.875rem, 0.8rem + 0.25vw, 0.9375rem)',
-                  }}
-                >
-                  {o.objection}
-                </div>
-                <p
-                  style={{
-                    fontSize: 'clamp(0.8rem, 0.75rem + 0.2vw, 0.875rem)',
-                    color: 'rgb(var(--color-text-muted))',
-                    lineHeight: 1.65,
-                  }}
-                >
-                  {o.weight}
-                </p>
-              </div>
+                index={i}
+                total={output.strong_objections.length}
+                accentHue={ac}
+                heading={o.objection}
+                body={o.weight}
+              />
             ))}
           </div>
         </Section>
@@ -375,30 +371,133 @@ function InterlocutorOutputView({
   );
 }
 
-/* ─── Stoic's Ledger ───────────────────────────────────────── */
-
-function StoicsLedgerOutputView({
-  output,
+function NumberedEntry({
+  index,
+  total,
+  accentHue,
+  heading,
+  body,
 }: {
-  output: StoicsLedgerOutput;
+  index: number;
+  total: number;
+  accentHue: string;
+  heading: string;
+  body: string;
 }) {
-  const ac = accent('stoics-ledger');
+  const isLast = index === total - 1;
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div
+      style={{
+        display: 'flex',
+        gap: '0.875rem',
+        paddingBottom: '1rem',
+        marginBottom: isLast ? 0 : '1rem',
+        borderBottom: isLast ? 'none' : `1px solid rgb(${accentHue} / 0.1)`,
+      }}
+    >
+      <span
+        style={{
+          fontSize: 'clamp(0.75rem, 0.7rem + 0.15vw, 0.8125rem)',
+          color: `rgb(${accentHue} / 0.65)`,
+          fontWeight: 500,
+          flexShrink: 0,
+          paddingTop: '0.125em',
+          minWidth: '1.25rem',
+          fontFamily: 'var(--font-display), Georgia, serif',
+          fontStyle: 'italic',
+        }}
+      >
+        {index + 1}.
+      </span>
+      <div>
+        <p
+          style={{
+            fontWeight: 500,
+            color: 'rgb(var(--color-text))',
+            fontSize: 'clamp(0.875rem, 0.8rem + 0.25vw, 0.9375rem)',
+            lineHeight: 1.5,
+            marginBottom: '0.375rem',
+          }}
+        >
+          {heading}
+        </p>
+        <p
+          style={{
+            fontSize: 'clamp(0.8rem, 0.75rem + 0.2vw, 0.875rem)',
+            color: 'rgb(var(--color-text-muted))',
+            lineHeight: 1.65,
+          }}
+        >
+          {body}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Stoic's Ledger — columnar ledger ───────────────────────── */
+
+function StoicsLedgerOutputView({ output }: { output: StoicsLedgerOutput }) {
+  const ac = accentFor('stoics-ledger');
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       <Section label="Conduct Review" accent={ac}>
         <TextBlock text={output.conduct_review} />
       </Section>
 
-      {output.duties_met.length > 0 && (
-        <Section label="Duties Met" accent={ac}>
-          <BulletList items={output.duties_met} />
-        </Section>
-      )}
+      {/* 2-column ledger for duties */}
+      {(output.duties_met.length > 0 || output.duties_neglected.length > 0) && (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '2rem',
+          }}
+        >
+          {output.duties_met.length > 0 && (
+            <div>
+              <div
+                style={{
+                  paddingBottom: '0.5rem',
+                  borderBottom: `1px solid rgb(${ac} / 0.18)`,
+                  marginBottom: '1rem',
+                }}
+              >
+                <span
+                  style={{
+                    ...labelCss,
+                    color: `rgb(${ac} / 0.75)`,
+                  }}
+                >
+                  Duties Met
+                </span>
+              </div>
+              <BulletList items={output.duties_met} />
+            </div>
+          )}
 
-      {output.duties_neglected.length > 0 && (
-        <Section label="Duties Neglected" accent={ac}>
-          <BulletList items={output.duties_neglected} />
-        </Section>
+          {output.duties_neglected.length > 0 && (
+            <div>
+              <div
+                style={{
+                  paddingBottom: '0.5rem',
+                  borderBottom: `1px solid rgb(${ac} / 0.18)`,
+                  marginBottom: '1rem',
+                }}
+              >
+                <span
+                  style={{
+                    ...labelCss,
+                    color: `rgb(${ac} / 0.75)`,
+                  }}
+                >
+                  Duties Neglected
+                </span>
+              </div>
+              <BulletList items={output.duties_neglected} />
+            </div>
+          )}
+        </div>
       )}
 
       {output.avoidances_named.length > 0 && (
@@ -424,12 +523,12 @@ function StoicsLedgerOutputView({
   );
 }
 
-/* ─── The Fool ──────────────────────────────────────────────── */
+/* ─── The Fool — counter-brief ───────────────────────────────── */
 
 function FoolOutputView({ output }: { output: FoolOutput }) {
-  const ac = accent('fool');
+  const ac = accentFor('fool');
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       <Section label="Your Claim" accent={ac}>
         <TextBlock text={output.core_claim} />
       </Section>
@@ -467,41 +566,36 @@ function FoolOutputView({ output }: { output: FoolOutput }) {
   );
 }
 
-/* ─── The Interpreter ──────────────────────────────────────── */
+/* ─── The Interpreter — parallel readings ───────────────────── */
 
-function InterpreterOutputView({
-  output,
-}: {
-  output: InterpreterOutput;
-}) {
-  const ac = accent('interpreter');
+function InterpreterOutputView({ output }: { output: InterpreterOutput }) {
+  const ac = accentFor('interpreter');
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       <Section label="The Symbol" accent={ac}>
         <CalloutBlock text={output.symbol_named} accentHue={ac} />
       </Section>
 
       <Section label="Five Lenses" accent={ac}>
-        <div
-          style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
-        >
-          {output.lenses.map((lens) => (
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {output.lenses.map((lens, i) => (
             <div
               key={lens.name}
               style={{
-                padding: '1rem 1.25rem',
-                background: 'rgb(var(--color-surface-3))',
-                borderRadius: '6px',
+                paddingBottom: '1.125rem',
+                marginBottom:
+                  i < output.lenses.length - 1 ? '1.125rem' : 0,
+                borderBottom:
+                  i < output.lenses.length - 1
+                    ? `1px solid rgb(${ac} / 0.1)`
+                    : 'none',
               }}
             >
               <div
                 style={{
-                  fontSize: 'clamp(0.7rem, 0.65rem + 0.15vw, 0.75rem)',
-                  fontWeight: 700,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
+                  ...labelCss,
                   color: `rgb(${ac})`,
-                  marginBottom: '0.625rem',
+                  marginBottom: '0.5rem',
                 }}
               >
                 {lens.name}
@@ -511,11 +605,16 @@ function InterpreterOutputView({
                   fontSize: 'clamp(0.875rem, 0.8rem + 0.25vw, 0.9375rem)',
                   color: 'rgb(var(--color-text-muted))',
                   lineHeight: 1.65,
-                  marginBottom: '0.625rem',
+                  marginBottom: '0.375rem',
                 }}
               >
-                <strong style={{ color: 'rgb(var(--color-text))', fontWeight: 500 }}>
-                  Notices:
+                <strong
+                  style={{
+                    color: 'rgb(var(--color-text))',
+                    fontWeight: 500,
+                  }}
+                >
+                  Notices —
                 </strong>{' '}
                 {lens.notices}
               </p>
@@ -524,9 +623,10 @@ function InterpreterOutputView({
                   fontSize: 'clamp(0.8rem, 0.75rem + 0.2vw, 0.875rem)',
                   color: 'rgb(var(--color-text-faint))',
                   lineHeight: 1.6,
+                  fontStyle: 'italic',
                 }}
               >
-                <em>Misses: {lens.misses}</em>
+                Misses — {lens.misses}
               </p>
             </div>
           ))}
@@ -546,7 +646,7 @@ function InterpreterOutputView({
   );
 }
 
-/* ─── Main export ───────────────────────────────────────────── */
+/* ─── Main export ────────────────────────────────────────────── */
 
 export function SessionOutput({
   toolSlug,

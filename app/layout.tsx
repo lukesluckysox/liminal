@@ -35,7 +35,7 @@ export default function RootLayout({
           href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700&display=swap"
           rel="stylesheet"
         />
-        <meta name="theme-color" content="#0c0b09" />
+        <meta name="theme-color" content="#14120E" />
       </head>
       <body>{children}</body>
     </html>

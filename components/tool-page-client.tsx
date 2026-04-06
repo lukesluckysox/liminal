@@ -228,39 +228,41 @@ export function ToolPageClient({ config }: ToolPageClientProps) {
         <div
           style={{
             marginTop: '3rem',
-            padding: '2rem',
-            background: 'rgb(var(--color-surface-2))',
-            borderRadius: '8px',
-            border: '1px solid rgb(var(--color-border) / 0.1)',
-            textAlign: 'center',
+            paddingTop: '2rem',
+            borderTop: '1px solid rgb(var(--color-border) / 0.12)',
             animation: 'fadeSlideUp 0.3s ease both',
           }}
           aria-live="polite"
           aria-label="Processing your request"
         >
           <div
-            className="spinner"
             style={{
-              margin: '0 auto 1rem',
-              width: 28,
-              height: 28,
-              borderWidth: 2,
-            }}
-          />
-          <p
-            style={{
-              fontSize: 'clamp(0.875rem, 0.8rem + 0.2vw, 0.9375rem)',
-              color: 'rgb(var(--color-text-muted))',
-              fontStyle: 'italic',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              marginBottom: '0.625rem',
             }}
           >
-            {config.processingLabel ?? 'Working…'}
-          </p>
+            <div
+              className="spinner"
+              style={{ width: 16, height: 16, flexShrink: 0 }}
+            />
+            <p
+              style={{
+                fontSize: 'clamp(0.875rem, 0.8rem + 0.2vw, 0.9375rem)',
+                color: 'rgb(var(--color-text-muted))',
+                fontStyle: 'italic',
+                fontFamily: 'var(--font-display), Georgia, serif',
+              }}
+            >
+              {config.processingLabel ?? 'Working…'}
+            </p>
+          </div>
           <p
             style={{
-              marginTop: '0.5rem',
               fontSize: '0.8rem',
               color: 'rgb(var(--color-text-faint))',
+              paddingLeft: '1.75rem',
             }}
           >
             This may take 15–45 seconds.
