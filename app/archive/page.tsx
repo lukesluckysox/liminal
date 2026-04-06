@@ -1,0 +1,251 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Nav } from '@/components/nav';
+import { getSession } from '@/lib/auth/session';
+import { query } from '@/lib/db';
+
+export const metadata: Metadata = {
+  title: 'Archive — Liminal',
+  description: 'Your past sessions across all six instruments.',
+};
+
+interface ToolSession {
+  id: string;
+  tool_slug: string;
+  title: string;
+  summary: string | null;
+  created_at: Date;
+}
+
+const TOOL_LABELS: Record<string, string> = {
+  'small-council':  'Small Council',
+  genealogist:      'The Genealogist',
+  interlocutor:     'The Interlocutor',
+  'stoics-ledger':  "The Stoic's Ledger",
+  fool:             'The Fool',
+  interpreter:      'The Interpreter',
+};
+
+const TOOL_ACCENT: Record<string, string> = {
+  'small-council':  '184 150 58',
+  genealogist:      '150 160 120',
+  interlocutor:     '120 148 180',
+  'stoics-ledger':  '172 142 100',
+  fool:             '180 100 100',
+  interpreter:      '140 120 180',
+};
+
+export default async function ArchivePage() {
+  const user = await getSession();
+
+  const sessions = await query<ToolSession>(
+    `SELECT id, tool_slug, title, summary, created_at
+     FROM tool_sessions
+     WHERE user_id = $1
+     ORDER BY created_at DESC
+     LIMIT 100`,
+    [user!.id]
+  );
+
+  return (
+    <>
+      <Nav user={user} />
+      <main
+        style={{
+          maxWidth: '800px',
+          margin: '0 auto',
+          padding: 'clamp(2.5rem, 5vw, 5rem) 1.5rem',
+        }}
+      >
+        {/* Header */}
+        <header style={{ marginBottom: 'clamp(2rem, 4vw, 3.5rem)' }}>
+          <h1
+            style={{
+              fontFamily: 'var(--font-display), Georgia, serif',
+              fontSize: 'clamp(1.75rem, 1.2rem + 1.5vw, 2.5rem)',
+              fontWeight: 400,
+              fontStyle: 'italic',
+              color: 'rgb(var(--color-text))',
+              marginBottom: '0.5rem',
+            }}
+          >
+            Archive
+          </h1>
+          <p
+            style={{
+              fontSize: 'clamp(0.875rem, 0.8rem + 0.25vw, 1rem)',
+              color: 'rgb(var(--color-text-muted))',
+            }}
+          >
+            {sessions.length === 0
+              ? 'No sessions yet.'
+              : `${sessions.length} session${sessions.length !== 1 ? 's' : ''} recorded.`}
+          </p>
+        </header>
+
+        {sessions.length === 0 ? (
+          /* Empty state */
+          <div
+            style={{
+              textAlign: 'center',
+              padding: 'clamp(3rem, 6vw, 5rem) 2rem',
+              color: 'rgb(var(--color-text-muted))',
+            }}
+          >
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                margin: '0 auto 1.25rem',
+                borderRadius: '50%',
+                background: 'rgb(var(--color-surface-2))',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              aria-hidden="true"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+            </div>
+            <p
+              style={{
+                fontSize: 'clamp(0.875rem, 0.8rem + 0.25vw, 1rem)',
+                maxWidth: '36ch',
+                margin: '0 auto 1.5rem',
+              }}
+            >
+              Nothing recorded yet. Begin with one of the instruments.
+            </p>
+            <Link
+              href="/"
+              className="btn-primary"
+              style={{ textDecoration: 'none', display: 'inline-flex' }}
+            >
+              Enter the cabinet
+            </Link>
+          </div>
+        ) : (
+          /* Session list */
+          <div
+            style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
+          >
+            {sessions.map((session) => {
+              const ac = TOOL_ACCENT[session.tool_slug] ?? '184 150 58';
+              const label = TOOL_LABELS[session.tool_slug] ?? session.tool_slug;
+              const date = new Date(session.created_at).toLocaleDateString(
+                'en-US',
+                { month: 'short', day: 'numeric', year: 'numeric' }
+              );
+
+              return (
+                <Link
+                  key={session.id}
+                  href={`/session/${session.id}`}
+                  className="liminal-card"
+                  style={{
+                    display: 'block',
+                    padding: '1.125rem 1.375rem',
+                    textDecoration: 'none',
+                  }}
+                >
+                  {/* Meta row */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.625rem',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 'clamp(0.65rem, 0.6rem + 0.15vw, 0.7rem)',
+                        fontWeight: 700,
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase',
+                        color: `rgb(${ac})`,
+                      }}
+                    >
+                      {label}
+                    </span>
+                    <span
+                      style={{
+                        width: '3px',
+                        height: '3px',
+                        borderRadius: '50%',
+                        background: `rgb(${ac} / 0.3)`,
+                        display: 'inline-block',
+                        flexShrink: 0,
+                      }}
+                      aria-hidden="true"
+                    />
+                    <span
+                      style={{
+                        fontSize: 'clamp(0.65rem, 0.6rem + 0.15vw, 0.7rem)',
+                        color: 'rgb(var(--color-text-faint))',
+                        letterSpacing: '0.03em',
+                      }}
+                    >
+                      {date}
+                    </span>
+                  </div>
+
+                  {/* Title */}
+                  <h2
+                    style={{
+                      fontSize: 'clamp(0.875rem, 0.8rem + 0.3vw, 1rem)',
+                      fontWeight: 500,
+                      color: 'rgb(var(--color-text))',
+                      lineHeight: 1.4,
+                      marginBottom: session.summary ? '0.375rem' : 0,
+                    }}
+                  >
+                    {session.title}
+                  </h2>
+
+                  {/* Summary */}
+                  {session.summary && (
+                    <p
+                      style={{
+                        fontSize: 'clamp(0.8rem, 0.75rem + 0.2vw, 0.875rem)',
+                        color: 'rgb(var(--color-text-muted))',
+                        lineHeight: 1.5,
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                      }}
+                    >
+                      {session.summary}
+                    </p>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Footer */}
+        {sessions.length > 0 && (
+          <footer
+            style={{
+              marginTop: '2.5rem',
+              textAlign: 'center',
+            }}
+          >
+            <Link
+              href="/"
+              className="btn-ghost"
+              style={{ textDecoration: 'none' }}
+            >
+              Back to the cabinet
+            </Link>
+          </footer>
+        )}
+      </main>
+    </>
+  );
+}
