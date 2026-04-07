@@ -157,7 +157,7 @@ export default async function Home() {
             className="eyebrow"
             style={{ marginBottom: user ? '1.75rem' : '1.5rem' }}
           >
-            Liminal — A Cabinet of Instruments
+            Liminal — instruments for the examined life
           </p>
 
           {/* ── Progress widget (authenticated users only) ─ */}
@@ -186,8 +186,8 @@ export default async function Home() {
               marginBottom: 'clamp(1.25rem, 2.5vw, 2rem)',
             }}
           >
-            Six instruments for examining a&nbsp;thing before it hardens into
-            certainty.
+            Most thought is shadow. Six instruments for those willing to face the
+            fire.
           </h1>
 
           <p
@@ -198,9 +198,9 @@ export default async function Home() {
               lineHeight: 1.72,
             }}
           >
-            A private cabinet. Not chatbots. Not therapy. Each tool performs a
-            distinct mode of inquiry — for the kind of thinking that cannot be
-            rushed, avoided, or delegated.
+            Not chatbots. Not therapy. A private cabinet for the passage between
+            received belief and earned clarity — for the kind of thinking that
+            lives at the threshold, where the shadow and the thing diverge.
           </p>
 
           {!user && (
