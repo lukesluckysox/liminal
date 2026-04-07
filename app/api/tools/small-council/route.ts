@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth/session';
 import { queryOne } from '@/lib/db';
 import { runSmallCouncil } from '@/lib/tools/small-council/orchestrator';
 import { checkAndIncrementUsage } from '@/lib/usage';
+import { classifyEntrySignal, emitLumenEvent } from '@/lib/lumenEmitter';
 
 const schema = z.object({
   question: z.string().min(10, 'Please describe your dilemma in more detail').max(2000),
@@ -54,6 +55,25 @@ export async function POST(request: NextRequest) {
         output.summary,
       ]
     );
+
+    // Fire-and-forget: emit epistemic events to Lumen
+    if (user.lumen_user_id && session) {
+      const signals = classifyEntrySignal(question);
+      for (const sig of signals) {
+        void emitLumenEvent({
+          userId: user.lumen_user_id,
+          sourceApp: "liminal",
+          sourceRecordId: session.id,
+          eventType: sig.eventType,
+          confidence: sig.confidence,
+          salience: sig.salience,
+          evidence: sig.evidence,
+          payload: { content: question.slice(0, 500), createdAt: new Date().toISOString(), historical: false },
+          ingestionMode: "live",
+          createdAt: new Date().toISOString(),
+        });
+      }
+    }
 
     return NextResponse.json({ sessionId: session!.id, output });
   } catch (err) {

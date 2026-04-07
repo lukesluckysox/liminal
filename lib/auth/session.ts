@@ -13,6 +13,7 @@ export interface AuthUser {
   role: UserRole;
   plan: UserPlan;
   created_at: Date;
+  lumen_user_id?: string | null;
 }
 
 export const COOKIE_OPTIONS = {
@@ -33,7 +34,7 @@ export async function getSession(): Promise<AuthUser | null> {
   if (!token) return null;
 
   const user = await queryOne<AuthUser>(
-    `SELECT u.id, u.email, u.role, u.plan, u.created_at
+    `SELECT u.id, u.email, u.role, u.plan, u.created_at, u.lumen_user_id
      FROM auth_sessions s
      JOIN users u ON s.user_id = u.id
      WHERE s.token = $1

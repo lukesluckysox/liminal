@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { queryOne } from '@/lib/db';
+import { queryOne, execute } from '@/lib/db';
 import { createSession, COOKIE_NAME, COOKIE_OPTIONS } from '@/lib/auth/session';
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -70,6 +70,14 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
       throw new Error('Failed to find or create SSO user');
+    }
+
+    // Persist the Lumen userId so epistemic events can reference it
+    if (payload.userId) {
+      await execute(
+        `UPDATE users SET lumen_user_id = $1 WHERE id = $2`,
+        [String(payload.userId), user.id]
+      );
     }
 
     // Create session (UUID token stored in auth_sessions table)
