@@ -70,8 +70,13 @@ export async function GET(request: NextRequest) {
     // Create session (UUID token stored in auth_sessions table)
     const sessionToken = await createSession(user.id);
 
-    // Redirect to app root with session cookie set
-    const response = NextResponse.redirect(new URL('/', request.url));
+    // Redirect to app root with session cookie set.
+    // Use request.nextUrl (not request.url) — request.url is the internal
+    // Railway address (localhost:8080); nextUrl is resolved to the public host.
+    const redirectTarget = request.nextUrl.clone();
+    redirectTarget.pathname = '/';
+    redirectTarget.search = '';
+    const response = NextResponse.redirect(redirectTarget);
     response.cookies.set(COOKIE_NAME, sessionToken, COOKIE_OPTIONS);
 
     return response;
