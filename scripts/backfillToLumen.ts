@@ -102,7 +102,8 @@ async function main() {
       byUser.get(uid)!.push(entries[j]);
     }
 
-    for (const [lumenUserId, userEntries] of byUser) {
+    for (const lumenUserId of Array.from(byUser.keys())) {
+      const userEntries = byUser.get(lumenUserId)!;
       try {
         const res = await fetch(`${LUMEN_API_URL}/api/epistemic/backfill/liminal`, {
           method: 'POST',
