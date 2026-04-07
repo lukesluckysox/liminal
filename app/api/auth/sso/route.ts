@@ -70,13 +70,15 @@ export async function GET(request: NextRequest) {
     // Create session (UUID token stored in auth_sessions table)
     const sessionToken = await createSession(user.id);
 
-    // Redirect to app root with session cookie set.
-    // Use request.nextUrl (not request.url) — request.url is the internal
-    // Railway address (localhost:8080); nextUrl is resolved to the public host.
-    const redirectTarget = request.nextUrl.clone();
-    redirectTarget.pathname = '/';
-    redirectTarget.search = '';
-    const response = NextResponse.redirect(redirectTarget);
+    // Build the redirect URL from Railway's forwarded headers.
+    // Both request.url and request.nextUrl resolve to localhost:8080 inside
+    // the container — the real public host lives in x-forwarded-host.
+    const proto = request.headers.get('x-forwarded-proto') ?? 'https';
+    const host =
+      request.headers.get('x-forwarded-host') ??
+      request.headers.get('host') ??
+      'liminal-app.up.railway.app';
+    const response = NextResponse.redirect(`${proto}://${host}/`);
     response.cookies.set(COOKIE_NAME, sessionToken, COOKIE_OPTIONS);
 
     return response;
