@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Nav } from '@/components/nav';
 import { HexProgress } from '@/components/hex-progress';
 import { ToolIcon } from '@/components/tool-icon';
+import { OnboardingGuide } from '@/components/onboarding-guide';
 import { getSession } from '@/lib/auth/session';
 import { query } from '@/lib/db';
 import { computeStreak, getRecentDays } from '@/lib/user-progress';
@@ -110,6 +111,7 @@ export default async function Home() {
   let usedSlugs: string[]   = [];
   let streak                = 0;
   let recentDays: boolean[] = Array(7).fill(false);
+  let sessionCount          = 0;
 
   if (user) {
     const [usedRows, activityRows] = await Promise.all([
@@ -126,10 +128,11 @@ export default async function Home() {
         [user.id]
       ),
     ]);
-    usedSlugs   = usedRows.map((r) => r.tool_slug);
-    const dates = activityRows.map((r) => new Date(r.day));
-    streak      = computeStreak(dates);
-    recentDays  = getRecentDays(dates);
+    usedSlugs    = usedRows.map((r) => r.tool_slug);
+    const dates  = activityRows.map((r) => new Date(r.day));
+    streak       = computeStreak(dates);
+    recentDays   = getRecentDays(dates);
+    sessionCount = activityRows.length;
   }
 
   // Split tools into left and right columns (alternating by index)
@@ -178,6 +181,11 @@ export default async function Home() {
             </div>
           )}
 
+          {/* Onboarding guide — new authenticated users only */}
+          {user && sessionCount === 0 && (
+            <OnboardingGuide />
+          )}
+
           <h1
             className="text-display"
             style={{
@@ -203,6 +211,11 @@ export default async function Home() {
             received belief and earned clarity — for the kind of thinking that
             lives at the threshold, where the shadow and the thing diverge.
           </p>
+
+          {/* Compact guide for returning users */}
+          {user && sessionCount > 0 && (
+            <OnboardingGuide compact />
+          )}
 
           {!user && (
             <div

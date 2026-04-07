@@ -1,10 +1,17 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { RegisterSW } from '@/components/register-sw';
 
 export const metadata: Metadata = {
   title: 'Liminal — A Cabinet of Instruments for Thought',
   description:
     'Six serious thinking tools. Not chatbots, not therapy. Each tool performs a distinct mode of inquiry.',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Liminal',
+  },
   openGraph: {
     title: 'Liminal',
     description: 'A cabinet of instruments for thought.',
@@ -15,8 +22,16 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Liminal — A Cabinet of Instruments for Thought',
-    description: 'Six serious thinking tools. Not chatbots, not therapy. Each tool performs a distinct mode of inquiry.',
+    description:
+      'Six serious thinking tools. Not chatbots, not therapy. Each tool performs a distinct mode of inquiry.',
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  minimumScale: 1,
+  themeColor: '#14120E',
 };
 
 export default function RootLayout({
@@ -42,9 +57,13 @@ export default function RootLayout({
           href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700&display=swap"
           rel="stylesheet"
         />
-        <meta name="theme-color" content="#14120E" />
+        {/* Apple icons */}
+        <link rel="apple-touch-icon" href="/apple-icon" />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <RegisterSW />
+      </body>
     </html>
   );
 }
