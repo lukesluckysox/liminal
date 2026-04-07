@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { LumenCompass } from './logo';
+import { LiminalLogo } from './logo';
 
 interface AuthFormProps {
   mode: 'login' | 'signup';
@@ -61,17 +61,16 @@ export function AuthForm({ mode }: AuthFormProps) {
         background: 'rgb(var(--color-bg))',
       }}
     >
-      {/* Compass — shows the full Lumen suite before login */}
+      {/* Logo */}
       <Link
         href="/"
         style={{
           color: 'rgb(var(--color-text))',
           textDecoration: 'none',
-          marginBottom: '1.75rem',
-          display: 'block',
+          marginBottom: '3rem',
         }}
       >
-        <LumenCompass />
+        <LiminalLogo size={40} />
       </Link>
 
       <div
