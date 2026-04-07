@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'SSO not configured' }, { status: 503 });
   }
 
-  let payload: { userId: number; username: string; sso: boolean };
+  let payload: { userId: number; username: string; email?: string | null; sso: boolean };
   try {
     payload = jwt.verify(token, JWT_SECRET) as typeof payload;
   } catch {
@@ -42,8 +42,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid SSO token' }, { status: 400 });
   }
 
-  // Liminal users are keyed by email; SSO accounts use a synthetic email.
-  const ssoEmail = `${payload.username.toLowerCase()}@lumen.sso`;
+  // Use the real Lumen email if present so we find the user's existing Liminal
+  // account. Fall back to a synthetic email only for users who registered in
+  // Lumen with a different email than their Liminal account (rare edge case).
+  const ssoEmail =
+    payload.email && !payload.email.endsWith('@lumen.sso')
+      ? payload.email.toLowerCase().trim()
+      : `${payload.username.toLowerCase()}@lumen.sso`;
 
   try {
     // Find existing SSO-linked user
