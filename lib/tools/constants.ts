@@ -1,5 +1,18 @@
 /** Single source of truth for tool identity across the app. */
 
+/**
+ * Lucide icon name assigned to each tool.
+ * Rendered via components/tool-icon.tsx — do not scatter icon imports elsewhere.
+ */
+export const TOOL_ICON_NAMES: Record<string, string> = {
+  'small-council': 'Landmark',      // deliberative assembly
+  'genealogist':   'ScrollText',    // archival document / lineage trace
+  'interlocutor':  'Scale',         // weighing arguments, balance of examination
+  'stoics-ledger': 'NotebookPen',   // active moral accounting / journal
+  'fool':          'TriangleAlert', // warning signal — the voice that names the danger
+  'interpreter':   'Eye',           // the act of seeing / five lenses
+};
+
 export const TOOL_ACCENTS: Record<string, string> = {
   'small-council': '156 134 84',   // old brass
   'genealogist':   '110 120 98',   // aged olive

@@ -3,6 +3,7 @@
 import { useState, useRef, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ToolIcon } from '@/components/tool-icon';
 
 const ACCENT = '184 150 58';
 
@@ -274,15 +275,28 @@ export function SmallCouncilClient() {
       <header style={{ marginBottom: 'clamp(2rem, 4vw, 3.5rem)' }}>
         <div
           style={{
-            width: '28px',
-            height: '2px',
-            background: `rgb(${ACCENT})`,
-            opacity: 0.7,
-            borderRadius: '1px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.625rem',
             marginBottom: '1.25rem',
           }}
           aria-hidden="true"
-        />
+        >
+          <ToolIcon
+            slug="small-council"
+            size={18}
+            style={{ color: `rgb(${ACCENT} / 0.65)`, flexShrink: 0 }}
+          />
+          <div
+            style={{
+              width: '20px',
+              height: '1.5px',
+              background: `rgb(${ACCENT})`,
+              opacity: 0.45,
+              borderRadius: '1px',
+            }}
+          />
+        </div>
         <h1
           style={{
             fontFamily: 'var(--font-display), Georgia, serif',

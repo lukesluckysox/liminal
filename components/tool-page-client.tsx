@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FormEvent, type ReactNode } from 'react';
+import { ToolIcon } from '@/components/tool-icon';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -99,15 +100,28 @@ export function ToolPageClient({ config }: ToolPageClientProps) {
       <header style={{ marginBottom: 'clamp(2rem, 4vw, 3.5rem)' }}>
         <div
           style={{
-            width: '28px',
-            height: '2px',
-            background: accentRgb,
-            opacity: 0.7,
-            borderRadius: '1px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.625rem',
             marginBottom: '1.25rem',
           }}
           aria-hidden="true"
-        />
+        >
+          <ToolIcon
+            slug={config.slug}
+            size={18}
+            style={{ color: accentAlpha(0.65), flexShrink: 0 }}
+          />
+          <div
+            style={{
+              width: '20px',
+              height: '1.5px',
+              background: accentRgb,
+              opacity: 0.45,
+              borderRadius: '1px',
+            }}
+          />
+        </div>
         <h1
           style={{
             fontFamily: 'var(--font-display), Georgia, serif',

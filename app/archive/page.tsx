@@ -6,6 +6,7 @@ import { HexProgress } from '@/components/hex-progress';
 import { getSession } from '@/lib/auth/session';
 import { query } from '@/lib/db';
 import { TOOL_LABELS, TOOL_ACCENTS } from '@/lib/tools/constants';
+import { ToolIcon } from '@/components/tool-icon';
 import { computeStreak, getRecentDays } from '@/lib/user-progress';
 
 export const metadata: Metadata = {
@@ -179,10 +180,16 @@ export default async function ArchivePage() {
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '0.625rem',
+                        gap: '0.5rem',
                         marginBottom: '0.5rem',
                       }}
                     >
+                      <ToolIcon
+                        slug={session.tool_slug}
+                        size={12}
+                        style={{ color: `rgb(${ac} / 0.6)`, flexShrink: 0 }}
+                        aria-hidden
+                      />
                       <span
                         style={{
                           fontSize: 'clamp(0.65rem, 0.6rem + 0.15vw, 0.7rem)',

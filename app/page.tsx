@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Nav } from '@/components/nav';
 import { HexProgress } from '@/components/hex-progress';
+import { ToolIcon } from '@/components/tool-icon';
 import { getSession } from '@/lib/auth/session';
 import { query } from '@/lib/db';
 import { computeStreak, getRecentDays } from '@/lib/user-progress';
@@ -257,10 +258,24 @@ export default async function Home() {
                     }}
                   >
                     <span
-                      className="tool-entry-glyph"
-                      style={{ color: `rgb(${tool.accentHue})` }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
                     >
-                      {tool.glyph}
+                      <span
+                        className="tool-entry-glyph"
+                        style={{ color: `rgb(${tool.accentHue})` }}
+                      >
+                        {tool.glyph}
+                      </span>
+                      <ToolIcon
+                        slug={tool.slug}
+                        size={15}
+                        style={{ color: `rgb(${tool.accentHue} / 0.4)`, flexShrink: 0 }}
+                        aria-hidden
+                      />
                     </span>
                     <span className="tool-entry-name">
                       {tool.name}
@@ -302,10 +317,24 @@ export default async function Home() {
                     }}
                   >
                     <span
-                      className="tool-entry-glyph"
-                      style={{ color: `rgb(${tool.accentHue})` }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
                     >
-                      {tool.glyph}
+                      <span
+                        className="tool-entry-glyph"
+                        style={{ color: `rgb(${tool.accentHue})` }}
+                      >
+                        {tool.glyph}
+                      </span>
+                      <ToolIcon
+                        slug={tool.slug}
+                        size={15}
+                        style={{ color: `rgb(${tool.accentHue} / 0.4)`, flexShrink: 0 }}
+                        aria-hidden
+                      />
                     </span>
                     <span className="tool-entry-name">
                       {tool.name}
