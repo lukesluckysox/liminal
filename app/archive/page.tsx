@@ -8,6 +8,8 @@ import { query } from '@/lib/db';
 import { TOOL_LABELS, TOOL_ACCENTS } from '@/lib/tools/constants';
 import { ToolIcon } from '@/components/tool-icon';
 import { computeStreak, getRecentDays } from '@/lib/user-progress';
+import { archiveLimits, isPaidPlan } from '@/lib/permissions';
+import { UpgradePrompt } from '@/components/upgrade-prompt';
 
 export const metadata: Metadata = {
   title: 'Archive — Liminal',
@@ -37,14 +39,23 @@ function mostUsedTool(sessions: ToolSession[]): string | null {
 
 export default async function ArchivePage() {
   const user = await getSession();
+  const plan = user!.plan ?? 'open';
+  const limits = archiveLimits(plan);
+  const paid = isPaidPlan(plan);
 
-  const [sessions, usedRows, activityRows] = await Promise.all([
+  // Build archive query with plan-based limits
+  const archiveWhereClause = limits.days !== Infinity
+    ? `AND created_at > NOW() - INTERVAL '${limits.days} days'`
+    : '';
+  const archiveLimit = limits.maxSessions === Infinity ? 200 : limits.maxSessions;
+
+  const [sessions, usedRows, activityRows, totalCount] = await Promise.all([
     query<ToolSession>(
       `SELECT id, tool_slug, title, input_text, summary, created_at
        FROM tool_sessions
-       WHERE user_id = $1
+       WHERE user_id = $1 ${archiveWhereClause}
        ORDER BY created_at DESC
-       LIMIT 100`,
+       LIMIT ${archiveLimit}`,
       [user!.id]
     ),
     query<{ tool_slug: string }>(
@@ -59,7 +70,15 @@ export default async function ArchivePage() {
        LIMIT 90`,
       [user!.id]
     ),
+    // Total session count (for showing "N more sessions hidden" message)
+    query<{ count: string }>(
+      `SELECT COUNT(*) AS count FROM tool_sessions WHERE user_id = $1`,
+      [user!.id]
+    ),
   ]);
+
+  const totalSessionCount = Number(totalCount[0]?.count ?? 0);
+  const hiddenCount = totalSessionCount - sessions.length;
 
   const usedSlugs  = usedRows.map((r) => r.tool_slug);
   const dates      = activityRows.map((r) => new Date(r.day));
@@ -201,7 +220,15 @@ export default async function ArchivePage() {
         {sessions.length === 0 ? (
           <EmptyArchive />
         ) : (
-          <ArchiveClient sessions={serializedSessions} />
+          <ArchiveClient sessions={serializedSessions} canCompare={paid} />
+        )}
+
+        {/* Archive depth upgrade prompt for free users */}
+        {!paid && hiddenCount > 0 && (
+          <UpgradePrompt
+            feature="archive"
+            message={`${hiddenCount} earlier session${hiddenCount !== 1 ? 's' : ''} beyond the last ${limits.days} days. Upgrade to Cabinet to return to all prior inquiries.`}
+          />
         )}
 
         {/* Footer */}

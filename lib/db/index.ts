@@ -73,6 +73,31 @@ CREATE TABLE IF NOT EXISTS council_turns (
 
 -- Additive migrations (idempotent — safe to run on every boot)
 ALTER TABLE tool_sessions ADD COLUMN IF NOT EXISTS feedback TEXT;
+
+-- ── Monetization schema additions ──────────────────────────────────────────
+-- Role: 'user' (default) or 'oracle' (admin)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user';
+-- Plan: 'open' (free) or 'cabinet' (paid). Extensible to 'trialing', 'canceled', 'grandfathered'.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS plan TEXT NOT NULL DEFAULT 'open';
+-- Monthly usage tracking
+ALTER TABLE users ADD COLUMN IF NOT EXISTS monthly_session_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS monthly_session_reset TIMESTAMPTZ DEFAULT NOW();
+-- Billing placeholders
+ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_changed_at TIMESTAMPTZ;
+
+-- Ensure oracle role for the designated admin email
+UPDATE users SET role = 'oracle', plan = 'cabinet' WHERE email = 'thebestpolicyis@gmail.com';
+
+-- Audit log for plan changes and admin actions
+CREATE TABLE IF NOT EXISTS audit_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  actor_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  target_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  action TEXT NOT NULL,
+  details JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 `;
 
 

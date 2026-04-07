@@ -11,6 +11,7 @@ import { SessionFeedback } from '@/components/session-feedback';
 import { getSession } from '@/lib/auth/session';
 import { queryOne } from '@/lib/db';
 import { TOOL_LABELS, TOOL_ACCENTS, TOOL_SLUGS } from '@/lib/tools/constants';
+import { canExport } from '@/lib/permissions';
 
 interface ToolSession {
   id: string;
@@ -222,13 +223,28 @@ export default async function SessionPage({ params }: PageProps) {
             >
               Return to this inquiry
             </Link>
-            <CopyMarkdownButton
-              toolSlug={session.tool_slug}
-              toolLabel={toolLabel}
-              title={session.title}
-              createdAt={createdAtIso}
-              output={session.structured_output}
-            />
+            {canExport(user.plan) ? (
+              <CopyMarkdownButton
+                toolSlug={session.tool_slug}
+                toolLabel={toolLabel}
+                title={session.title}
+                createdAt={createdAtIso}
+                output={session.structured_output}
+              />
+            ) : (
+              <a
+                href="/account"
+                className="btn-ghost"
+                style={{
+                  textDecoration: 'none',
+                  fontSize: 'clamp(0.75rem, 0.7rem + 0.15vw, 0.8125rem)',
+                  fontStyle: 'italic',
+                  color: 'rgb(var(--color-gold) / 0.7)',
+                }}
+              >
+                Export with Cabinet
+              </a>
+            )}
           </div>
           <DeleteSessionButton sessionId={session.id} redirectTo="/archive" />
         </footer>

@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { LiminalWordmark } from './logo';
 
 interface NavProps {
-  user: { id: string; email: string } | null;
+  user: { id: string; email: string; role?: string; plan?: string } | null;
 }
 
 export function Nav({ user }: NavProps) {
@@ -75,6 +75,31 @@ export function Nav({ user }: NavProps) {
               >
                 Archive
               </Link>
+              <Link
+                href="/account"
+                className="btn-ghost"
+                style={{
+                  textDecoration: 'none',
+                  fontSize: 'clamp(0.8rem, 0.75rem + 0.25vw, 0.9rem)',
+                  opacity: pathname === '/account' ? 1 : 0.8,
+                }}
+              >
+                Account
+              </Link>
+              {user.role === 'oracle' && (
+                <Link
+                  href="/oracle"
+                  className="btn-ghost"
+                  style={{
+                    textDecoration: 'none',
+                    fontSize: 'clamp(0.8rem, 0.75rem + 0.25vw, 0.9rem)',
+                    color: 'rgb(var(--color-gold) / 0.8)',
+                    opacity: pathname === '/oracle' ? 1 : 0.8,
+                  }}
+                >
+                  Oracle
+                </Link>
+              )}
               <button
                 onClick={handleLogout}
                 disabled={loggingOut}

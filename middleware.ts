@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { COOKIE_NAME } from '@/lib/auth/constants';
 
-const PROTECTED_PATHS = ['/archive', '/tool', '/session'];
+const PROTECTED_PATHS = ['/archive', '/tool', '/session', '/oracle', '/account'];
 const AUTH_PATHS = ['/login', '/signup'];
 
 export function middleware(request: NextRequest) {

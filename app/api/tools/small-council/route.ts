@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getSession } from '@/lib/auth/session';
 import { queryOne } from '@/lib/db';
 import { runSmallCouncil } from '@/lib/tools/small-council/orchestrator';
+import { checkAndIncrementUsage } from '@/lib/usage';
 
 const schema = z.object({
   question: z.string().min(10, 'Please describe your dilemma in more detail').max(2000),
@@ -25,6 +26,15 @@ export async function POST(request: NextRequest) {
     }
 
     const { question } = parsed.data;
+
+    const usage = await checkAndIncrementUsage(user);
+    if (!usage.allowed) {
+      return NextResponse.json(
+        { error: 'You have reached your monthly session limit. Upgrade to Cabinet for unlimited sessions.', code: 'SESSION_LIMIT' },
+        { status: 429 }
+      );
+    }
+
     const output = await runSmallCouncil(question);
 
     const title =

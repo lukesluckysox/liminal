@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getSession } from '@/lib/auth/session';
 import { queryOne } from '@/lib/db';
 import { runStoicsLedger } from '@/lib/tools/stoics-ledger/orchestrator';
+import { checkAndIncrementUsage } from '@/lib/usage';
 
 const schema = z.object({
   report: z
@@ -28,6 +29,15 @@ export async function POST(request: NextRequest) {
     }
 
     const { report } = parsed.data;
+
+    const usage = await checkAndIncrementUsage(user);
+    if (!usage.allowed) {
+      return NextResponse.json(
+        { error: 'You have reached your monthly session limit. Upgrade to Cabinet for unlimited sessions.', code: 'SESSION_LIMIT' },
+        { status: 429 }
+      );
+    }
+
     const output = await runStoicsLedger(report);
 
     const today = new Date().toLocaleDateString('en-US', {

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getSession } from '@/lib/auth/session';
 import { queryOne } from '@/lib/db';
 import { runSmallCouncilStreaming } from '@/lib/tools/small-council/orchestrator';
+import { checkAndIncrementUsage } from '@/lib/usage';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 90;
@@ -36,6 +37,15 @@ export async function POST(req: NextRequest) {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
+  }
+
+  // Check session limit
+  const usage = await checkAndIncrementUsage(user);
+  if (!usage.allowed) {
+    return new Response(
+      JSON.stringify({ error: 'You have reached your monthly session limit. Upgrade to Cabinet for unlimited sessions.', code: 'SESSION_LIMIT' }),
+      { status: 429, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 
   const encoder = new TextEncoder();

@@ -97,9 +97,10 @@ function truncate(text: string | null, len: number): string {
 
 interface ArchiveClientProps {
   sessions: ArchiveSession[];
+  canCompare?: boolean;
 }
 
-export function ArchiveClient({ sessions }: ArchiveClientProps) {
+export function ArchiveClient({ sessions, canCompare: canCompareFeature = true }: ArchiveClientProps) {
   const router = useRouter();
   const [search,       setSearch]       = useState('');
   const [toolFilter,   setToolFilter]   = useState<string>('all');
@@ -184,27 +185,49 @@ export function ArchiveClient({ sessions }: ArchiveClientProps) {
       >
         {/* Compare toggle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => { setCompareMode((v) => !v); setCompareIds(['', null]); }}
-            style={{
-              background: compareMode ? 'rgb(var(--color-gold) / 0.1)' : 'transparent',
-              border: `1px solid ${compareMode ? 'rgb(var(--color-gold) / 0.3)' : 'rgb(var(--color-border) / 0.12)'}`,
-              borderRadius: '3px',
-              padding: '0.3rem 0.75rem',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              fontSize: '0.6875rem',
-              fontWeight: compareMode ? 600 : 400,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-              color: compareMode ? 'rgb(var(--color-gold))' : 'rgb(var(--color-text-faint))',
-              transition: 'all 140ms ease',
-            }}
-          >
-            Compare
-          </button>
+          {canCompareFeature ? (
+            <button
+              onClick={() => { setCompareMode((v) => !v); setCompareIds(['', null]); }}
+              style={{
+                background: compareMode ? 'rgb(var(--color-gold) / 0.1)' : 'transparent',
+                border: `1px solid ${compareMode ? 'rgb(var(--color-gold) / 0.3)' : 'rgb(var(--color-border) / 0.12)'}`,
+                borderRadius: '3px',
+                padding: '0.3rem 0.75rem',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontSize: '0.6875rem',
+                fontWeight: compareMode ? 600 : 400,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: compareMode ? 'rgb(var(--color-gold))' : 'rgb(var(--color-text-faint))',
+                transition: 'all 140ms ease',
+              }}
+            >
+              Compare
+            </button>
+          ) : (
+            <a
+              href="/account"
+              style={{
+                background: 'transparent',
+                border: '1px solid rgb(var(--color-border) / 0.12)',
+                borderRadius: '3px',
+                padding: '0.3rem 0.75rem',
+                fontFamily: 'inherit',
+                fontSize: '0.6875rem',
+                fontWeight: 400,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: 'rgb(var(--color-gold) / 0.6)',
+                textDecoration: 'none',
+                fontStyle: 'italic',
+              }}
+            >
+              Compare with Cabinet
+            </a>
+          )}
 
-          {compareMode && (
+          {compareMode && canCompareFeature && (
             <>
               <span
                 style={{

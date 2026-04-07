@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getSession } from '@/lib/auth/session';
 import { queryOne } from '@/lib/db';
 import { runFool } from '@/lib/tools/fool/orchestrator';
+import { checkAndIncrementUsage } from '@/lib/usage';
 
 const schema = z.object({
   position: z
@@ -28,6 +29,15 @@ export async function POST(request: NextRequest) {
     }
 
     const { position } = parsed.data;
+
+    const usage = await checkAndIncrementUsage(user);
+    if (!usage.allowed) {
+      return NextResponse.json(
+        { error: 'You have reached your monthly session limit. Upgrade to Cabinet for unlimited sessions.', code: 'SESSION_LIMIT' },
+        { status: 429 }
+      );
+    }
+
     const output = await runFool(position);
 
     const title =

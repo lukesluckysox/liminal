@@ -8,6 +8,8 @@ import { LocalDate } from '@/components/local-date';
 import { getSession } from '@/lib/auth/session';
 import { queryOne } from '@/lib/db';
 import { TOOL_LABELS, TOOL_ACCENTS } from '@/lib/tools/constants';
+import { canCompare } from '@/lib/permissions';
+import { UpgradePrompt } from '@/components/upgrade-prompt';
 
 export const metadata: Metadata = {
   title: 'Compare Sessions — Liminal',
@@ -37,6 +39,24 @@ function serializeSession(s: ToolSession) {
 export default async function ComparePage({ searchParams }: PageProps) {
   const user = await getSession();
   if (!user) notFound();
+
+  // Plan gate: comparison is Cabinet-only
+  if (!canCompare(user.plan)) {
+    return (
+      <>
+        <Nav user={user} />
+        <main
+          style={{
+            maxWidth: '720px',
+            margin: '0 auto',
+            padding: 'clamp(2.5rem, 5vw, 5rem) 1.5rem',
+          }}
+        >
+          <UpgradePrompt feature="compare" />
+        </main>
+      </>
+    );
+  }
 
   const { a, b } = searchParams;
   if (!a || !b) {

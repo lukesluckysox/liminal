@@ -4,9 +4,14 @@ import { COOKIE_NAME, SESSION_DURATION_DAYS } from './constants';
 
 export { COOKIE_NAME } from './constants';
 
+export type UserRole = 'user' | 'oracle';
+export type UserPlan = 'open' | 'cabinet' | 'trialing' | 'canceled' | 'grandfathered';
+
 export interface AuthUser {
   id: string;
   email: string;
+  role: UserRole;
+  plan: UserPlan;
   created_at: Date;
 }
 
@@ -28,7 +33,7 @@ export async function getSession(): Promise<AuthUser | null> {
   if (!token) return null;
 
   const user = await queryOne<AuthUser>(
-    `SELECT u.id, u.email, u.created_at
+    `SELECT u.id, u.email, u.role, u.plan, u.created_at
      FROM auth_sessions s
      JOIN users u ON s.user_id = u.id
      WHERE s.token = $1

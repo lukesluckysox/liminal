@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getSession } from '@/lib/auth/session';
 import { queryOne } from '@/lib/db';
 import { runGenealogist } from '@/lib/tools/genealogist/orchestrator';
+import { checkAndIncrementUsage } from '@/lib/usage';
 
 const schema = z.object({
   belief: z
@@ -28,6 +29,16 @@ export async function POST(request: NextRequest) {
     }
 
     const { belief } = parsed.data;
+
+    // Check session limit
+    const usage = await checkAndIncrementUsage(user);
+    if (!usage.allowed) {
+      return NextResponse.json(
+        { error: 'You have reached your monthly session limit. Upgrade to Cabinet for unlimited sessions.', code: 'SESSION_LIMIT' },
+        { status: 429 }
+      );
+    }
+
     const output = await runGenealogist(belief);
 
     const title = belief.length > 80 ? belief.slice(0, 80) + '…' : belief;

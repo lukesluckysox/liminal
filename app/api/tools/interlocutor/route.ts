@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getSession } from '@/lib/auth/session';
 import { queryOne } from '@/lib/db';
 import { runInterlocutor } from '@/lib/tools/interlocutor/orchestrator';
+import { checkAndIncrementUsage } from '@/lib/usage';
 
 const schema = z.object({
   thesis: z
@@ -28,6 +29,15 @@ export async function POST(request: NextRequest) {
     }
 
     const { thesis } = parsed.data;
+
+    const usage = await checkAndIncrementUsage(user);
+    if (!usage.allowed) {
+      return NextResponse.json(
+        { error: 'You have reached your monthly session limit. Upgrade to Cabinet for unlimited sessions.', code: 'SESSION_LIMIT' },
+        { status: 429 }
+      );
+    }
+
     const output = await runInterlocutor(thesis);
 
     const title = thesis.length > 80 ? thesis.slice(0, 80) + '…' : thesis;

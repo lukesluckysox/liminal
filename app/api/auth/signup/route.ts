@@ -40,12 +40,17 @@ export async function POST(request: NextRequest) {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 12);
 
+    // Auto-assign oracle role for designated admin email
+    const ORACLE_EMAIL = 'thebestpolicyis@gmail.com';
+    const assignedRole = lowerEmail === ORACLE_EMAIL ? 'oracle' : 'user';
+    const assignedPlan = lowerEmail === ORACLE_EMAIL ? 'cabinet' : 'open';
+
     // Create user
     const user = await queryOne<{ id: string }>(
-      `INSERT INTO users (email, password_hash)
-       VALUES ($1, $2)
+      `INSERT INTO users (email, password_hash, role, plan)
+       VALUES ($1, $2, $3, $4)
        RETURNING id`,
-      [lowerEmail, passwordHash]
+      [lowerEmail, passwordHash, assignedRole, assignedPlan]
     );
 
     if (!user) {

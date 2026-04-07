@@ -95,6 +95,8 @@ export function ToolPageClient({ config }: ToolPageClientProps) {
       if (!res.ok) {
         if (res.status === 401) {
           setError('Your session has expired. Sign in again to continue.');
+        } else if (res.status === 429 && data.code === 'SESSION_LIMIT') {
+          setError('SESSION_LIMIT');
         } else if (res.status === 429) {
           setError('Too many requests. Wait a moment and try again.');
         } else {
@@ -306,7 +308,60 @@ export function ToolPageClient({ config }: ToolPageClientProps) {
           </div>
         </div>
 
-        {error && (
+        {error && error === 'SESSION_LIMIT' ? (
+          <div
+            role="alert"
+            aria-live="polite"
+            style={{
+              marginBottom: '1.25rem',
+              padding: '1.5rem 1.75rem',
+              background: 'rgb(var(--color-gold-dim) / 0.35)',
+              border: '1px solid rgb(var(--color-gold) / 0.12)',
+              borderRadius: '4px',
+              borderLeft: '2px solid rgb(var(--color-gold) / 0.3)',
+            }}
+          >
+            <p
+              style={{
+                fontFamily: 'var(--font-display), Georgia, serif',
+                fontSize: 'clamp(0.9375rem, 0.875rem + 0.3vw, 1.0625rem)',
+                fontStyle: 'italic',
+                color: 'rgb(var(--color-text))',
+                marginBottom: '0.5rem',
+              }}
+            >
+              Keep a private cabinet of thought
+            </p>
+            <p
+              style={{
+                fontSize: 'clamp(0.8rem, 0.75rem + 0.15vw, 0.85rem)',
+                color: 'rgb(var(--color-text-muted))',
+                lineHeight: 1.6,
+                marginBottom: '1rem',
+                maxWidth: '48ch',
+              }}
+            >
+              You have used your free sessions for the month. The Cabinet offers unlimited access to all six instruments.
+            </p>
+            <a
+              href="/account"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 1.25rem',
+                background: 'rgb(var(--color-gold))',
+                color: 'rgb(20 18 14)',
+                fontSize: 'clamp(0.8125rem, 0.76rem + 0.15vw, 0.875rem)',
+                fontWeight: 500,
+                borderRadius: '3px',
+                textDecoration: 'none',
+              }}
+            >
+              Upgrade to Cabinet
+            </a>
+          </div>
+        ) : error ? (
           <div
             className="inline-error"
             role="alert"
@@ -315,7 +370,7 @@ export function ToolPageClient({ config }: ToolPageClientProps) {
           >
             {error}
           </div>
-        )}
+        ) : null}
 
         <button
           type="submit"
