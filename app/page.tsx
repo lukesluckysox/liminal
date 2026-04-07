@@ -4,8 +4,9 @@ import { HexProgress } from '@/components/hex-progress';
 import { ToolIcon } from '@/components/tool-icon';
 import { OnboardingGuide } from '@/components/onboarding-guide';
 import { getSession } from '@/lib/auth/session';
-import { query } from '@/lib/db';
+import { query, queryOne } from '@/lib/db';
 import { computeStreak, getRecentDays } from '@/lib/user-progress';
+import { TOOL_ACCENTS } from '@/lib/tools/constants';
 
 // ── Tool registry ──────────────────────────────────────────────────────────────
 const TOOLS = [
@@ -112,9 +113,10 @@ export default async function Home() {
   let streak                = 0;
   let recentDays: boolean[] = Array(7).fill(false);
   let sessionCount          = 0;
+  let lastSession: { id: string; tool_slug: string; title: string } | null = null;
 
   if (user) {
-    const [usedRows, activityRows] = await Promise.all([
+    const [usedRows, activityRows, lastRow] = await Promise.all([
       query<{ tool_slug: string }>(
         `SELECT DISTINCT tool_slug FROM tool_sessions WHERE user_id = $1`,
         [user.id]
@@ -127,12 +129,19 @@ export default async function Home() {
          LIMIT 90`,
         [user.id]
       ),
+      queryOne<{ id: string; tool_slug: string; title: string }>(
+        `SELECT id, tool_slug, title FROM tool_sessions
+         WHERE user_id = $1
+         ORDER BY created_at DESC LIMIT 1`,
+        [user.id]
+      ),
     ]);
     usedSlugs    = usedRows.map((r) => r.tool_slug);
     const dates  = activityRows.map((r) => new Date(r.day));
     streak       = computeStreak(dates);
     recentDays   = getRecentDays(dates);
     sessionCount = activityRows.length;
+    lastSession  = lastRow;
   }
 
   // Split tools into left and right columns (alternating by index)
@@ -184,6 +193,79 @@ export default async function Home() {
           {/* Onboarding guide — new authenticated users only */}
           {user && sessionCount === 0 && (
             <OnboardingGuide />
+          )}
+
+          {/* Resume last session — returning users only */}
+          {user && lastSession && (
+            <div
+              style={{
+                marginBottom: 'clamp(1.25rem, 2.5vw, 2rem)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.875rem',
+                flexWrap: 'wrap',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 'clamp(0.625rem, 0.58rem + 0.12vw, 0.6875rem)',
+                  fontWeight: 600,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: 'rgb(var(--color-text-faint))',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Last inquiry
+              </span>
+              <Link
+                href={`/session/${lastSession.id}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  textDecoration: 'none',
+                  padding: '0.375rem 0.75rem',
+                  border: `1px solid rgb(${TOOL_ACCENTS[lastSession.tool_slug] ?? '156 134 84'} / 0.2)`,
+                  borderRadius: '3px',
+                  background: `rgb(${TOOL_ACCENTS[lastSession.tool_slug] ?? '156 134 84'} / 0.04)`,
+                  minWidth: 0,
+                  maxWidth: '42ch',
+                }}
+              >
+                <ToolIcon
+                  slug={lastSession.tool_slug}
+                  size={12}
+                  style={{
+                    color: `rgb(${TOOL_ACCENTS[lastSession.tool_slug] ?? '156 134 84'} / 0.7)`,
+                    flexShrink: 0,
+                  }}
+                  aria-hidden
+                />
+                <span
+                  style={{
+                    fontSize: 'clamp(0.75rem, 0.7rem + 0.15vw, 0.8125rem)',
+                    color: 'rgb(var(--color-text-muted))',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {lastSession.title}
+                </span>
+                <span
+                  style={{
+                    fontSize: '0.7rem',
+                    color: `rgb(${TOOL_ACCENTS[lastSession.tool_slug] ?? '156 134 84'} / 0.65)`,
+                    marginLeft: 'auto',
+                    paddingLeft: '0.5rem',
+                    flexShrink: 0,
+                  }}
+                >
+                  Return →
+                </span>
+              </Link>
+            </div>
           )}
 
           <h1

@@ -70,7 +70,11 @@ CREATE TABLE IF NOT EXISTS council_turns (
   content TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Additive migrations (idempotent — safe to run on every boot)
+ALTER TABLE tool_sessions ADD COLUMN IF NOT EXISTS feedback TEXT;
 `;
+
 
 let initialized = false;
 let initPromise: Promise<void> | null = null;

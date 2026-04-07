@@ -5,9 +5,12 @@ import { Nav } from '@/components/nav';
 import { SessionOutput } from '@/components/session-output';
 import { DeleteSessionButton } from '@/components/delete-session-button';
 import { SessionOutputErrorBoundary } from '@/components/session-output-error-boundary';
+import { LocalDate } from '@/components/local-date';
+import { CopyMarkdownButton } from '@/components/copy-markdown-button';
+import { SessionFeedback } from '@/components/session-feedback';
 import { getSession } from '@/lib/auth/session';
 import { queryOne } from '@/lib/db';
-import { TOOL_LABELS, TOOL_ACCENTS } from '@/lib/tools/constants';
+import { TOOL_LABELS, TOOL_ACCENTS, TOOL_SLUGS } from '@/lib/tools/constants';
 
 interface ToolSession {
   id: string;
@@ -16,6 +19,7 @@ interface ToolSession {
   input_text: string;
   structured_output: unknown;
   created_at: Date;
+  feedback: string | null;
 }
 
 interface PageProps {
@@ -23,7 +27,6 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  // Fetch just the title for metadata (no auth check needed for title)
   const row = await queryOne<{ title: string; tool_slug: string }>(
     `SELECT title, tool_slug FROM tool_sessions WHERE id = $1`,
     [params.sessionId]
@@ -40,7 +43,7 @@ export default async function SessionPage({ params }: PageProps) {
   if (!user) notFound();
 
   const session = await queryOne<ToolSession>(
-    `SELECT id, tool_slug, title, input_text, structured_output, created_at
+    `SELECT id, tool_slug, title, input_text, structured_output, created_at, feedback
      FROM tool_sessions
      WHERE id = $1 AND user_id = $2`,
     [params.sessionId, user.id]
@@ -52,12 +55,14 @@ export default async function SessionPage({ params }: PageProps) {
   const toolLabel = TOOL_LABELS[session.tool_slug] ?? session.tool_slug;
   const toolHref = `/tool/${session.tool_slug}`;
 
-  const date = new Date(session.created_at).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  // Serialize created_at for client components
+  const createdAtIso =
+    session.created_at instanceof Date
+      ? session.created_at.toISOString()
+      : String(session.created_at);
+
+  // Other instruments for "Examine with another lens" section
+  const otherTools = TOOL_SLUGS.filter((s) => s !== session.tool_slug);
 
   return (
     <>
@@ -117,15 +122,16 @@ export default async function SessionPage({ params }: PageProps) {
               }}
               aria-hidden="true"
             />
-            <span
+            {/* LocalDate renders in user's timezone on the client */}
+            <LocalDate
+              isoString={createdAtIso}
+              format="long"
               style={{
                 fontSize: 'clamp(0.7rem, 0.65rem + 0.15vw, 0.75rem)',
                 color: 'rgb(var(--color-text-faint))',
                 letterSpacing: '0.03em',
               }}
-            >
-              {date}
-            </span>
+            />
           </div>
 
           <h1
@@ -188,10 +194,17 @@ export default async function SessionPage({ params }: PageProps) {
           </SessionOutputErrorBoundary>
         </div>
 
+        {/* Feedback */}
+        <SessionFeedback
+          sessionId={session.id}
+          initialFeedback={session.feedback}
+          accentHue={ac}
+        />
+
         {/* Footer actions */}
         <footer
           style={{
-            marginTop: 'clamp(3rem, 5vw, 4rem)',
+            marginTop: 'clamp(2.5rem, 4vw, 3.5rem)',
             paddingTop: '2rem',
             borderTop: '1px solid rgb(var(--color-border) / 0.1)',
             display: 'flex',
@@ -201,24 +214,70 @@ export default async function SessionPage({ params }: PageProps) {
             justifyContent: 'space-between',
           }}
         >
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
             <Link
               href={toolHref}
               className="btn-primary"
               style={{ textDecoration: 'none', padding: '0.6rem 1.5rem' }}
             >
-              Use {toolLabel} again
+              Return to this inquiry
             </Link>
-            <Link
-              href="/"
-              className="btn-ghost"
-              style={{ textDecoration: 'none' }}
-            >
-              All instruments
-            </Link>
+            <CopyMarkdownButton
+              toolSlug={session.tool_slug}
+              toolLabel={toolLabel}
+              title={session.title}
+              createdAt={createdAtIso}
+              output={session.structured_output}
+            />
           </div>
           <DeleteSessionButton sessionId={session.id} redirectTo="/archive" />
         </footer>
+
+        {/* Other instruments */}
+        <section
+          style={{
+            marginTop: 'clamp(2.5rem, 4vw, 3.5rem)',
+            paddingTop: '2rem',
+            borderTop: '1px solid rgb(var(--color-border) / 0.06)',
+          }}
+          aria-label="Examine with another instrument"
+        >
+          <p
+            style={{
+              fontSize: 'clamp(0.625rem, 0.58rem + 0.12vw, 0.6875rem)',
+              fontWeight: 600,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: 'rgb(var(--color-text-faint))',
+              marginBottom: '0.875rem',
+            }}
+          >
+            Examine with another instrument
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+            {otherTools.map((slug) => {
+              const label = TOOL_LABELS[slug] ?? slug;
+              const accent = TOOL_ACCENTS[slug] ?? '156 134 84';
+              return (
+                <Link
+                  key={slug}
+                  href={`/tool/${slug}`}
+                  style={{
+                    fontSize: 'clamp(0.75rem, 0.7rem + 0.15vw, 0.8125rem)',
+                    color: `rgb(${accent})`,
+                    textDecoration: 'none',
+                    padding: '0.3rem 0.625rem',
+                    border: `1px solid rgb(${accent} / 0.2)`,
+                    borderRadius: '3px',
+                    transition: 'border-color 140ms ease',
+                  }}
+                >
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+        </section>
       </main>
     </>
   );

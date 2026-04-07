@@ -9,6 +9,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ToolIcon } from '@/components/tool-icon';
 import { DeleteSessionButton } from '@/components/delete-session-button';
 
@@ -99,9 +100,27 @@ interface ArchiveClientProps {
 }
 
 export function ArchiveClient({ sessions }: ArchiveClientProps) {
-  const [search,     setSearch]     = useState('');
-  const [toolFilter, setToolFilter] = useState<string>('all');
-  const [sortOrder,  setSortOrder]  = useState<'newest' | 'oldest'>('newest');
+  const router = useRouter();
+  const [search,       setSearch]       = useState('');
+  const [toolFilter,   setToolFilter]   = useState<string>('all');
+  const [sortOrder,    setSortOrder]    = useState<'newest' | 'oldest'>('newest');
+  const [compareMode,  setCompareMode]  = useState(false);
+  const [compareIds,   setCompareIds]   = useState<[string, string | null]>(['', null]);
+
+  function toggleCompareSelect(id: string) {
+    setCompareIds(([a, b]) => {
+      if (a === id) return ['', null];
+      if (b === id) return [a, null];
+      if (!a) return [id, null];
+      if (!b) return [a, id];
+      return [id, null]; // replace first if both already selected
+    });
+  }
+
+  function launchCompare() {
+    const [a, b] = compareIds;
+    if (a && b) router.push(`/compare?a=${a}&b=${b}`);
+  }
 
   // ── Derived filtered + sorted + grouped list
   const filtered = useMemo(() => {
@@ -163,6 +182,55 @@ export function ArchiveClient({ sessions }: ArchiveClientProps) {
           gap: '0.875rem',
         }}
       >
+        {/* Compare toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => { setCompareMode((v) => !v); setCompareIds(['', null]); }}
+            style={{
+              background: compareMode ? 'rgb(var(--color-gold) / 0.1)' : 'transparent',
+              border: `1px solid ${compareMode ? 'rgb(var(--color-gold) / 0.3)' : 'rgb(var(--color-border) / 0.12)'}`,
+              borderRadius: '3px',
+              padding: '0.3rem 0.75rem',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontSize: '0.6875rem',
+              fontWeight: compareMode ? 600 : 400,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              color: compareMode ? 'rgb(var(--color-gold))' : 'rgb(var(--color-text-faint))',
+              transition: 'all 140ms ease',
+            }}
+          >
+            Compare
+          </button>
+
+          {compareMode && (
+            <>
+              <span
+                style={{
+                  fontSize: '0.75rem',
+                  color: 'rgb(var(--color-text-faint))',
+                  fontStyle: 'italic',
+                }}
+              >
+                {compareIds[0] && compareIds[1]
+                  ? 'Ready to compare'
+                  : compareIds[0]
+                  ? 'Select one more'
+                  : 'Select two sessions'}
+              </span>
+              {compareIds[0] && compareIds[1] && (
+                <button
+                  onClick={launchCompare}
+                  className="btn-primary"
+                  style={{ padding: '0.3rem 1rem', fontSize: '0.75rem' }}
+                >
+                  Compare side by side →
+                </button>
+              )}
+            </>
+          )}
+        </div>
         {/* Search */}
         <div style={{ position: 'relative' }}>
           <input
@@ -304,7 +372,13 @@ export function ArchiveClient({ sessions }: ArchiveClientProps) {
               {/* Session cards */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                 {grouped.get(group)!.map((session) => (
-                  <SessionCard key={session.id} session={session} />
+                  <SessionCard
+                    key={session.id}
+                    session={session}
+                    compareMode={compareMode}
+                    compareSelected={compareIds[0] === session.id || compareIds[1] === session.id}
+                    onCompareToggle={() => toggleCompareSelect(session.id)}
+                  />
                 ))}
               </div>
             </section>
@@ -363,24 +437,70 @@ function FilterPill({
 
 // ── Session card ──────────────────────────────────────────────────────────────
 
-function SessionCard({ session }: { session: ArchiveSession }) {
+function SessionCard({
+  session,
+  compareMode = false,
+  compareSelected = false,
+  onCompareToggle,
+}: {
+  session: ArchiveSession;
+  compareMode?: boolean;
+  compareSelected?: boolean;
+  onCompareToggle?: () => void;
+}) {
   const ac    = TOOL_ACCENTS[session.tool_slug] ?? '184 150 58';
   const label = TOOL_LABELS[session.tool_slug]  ?? session.tool_slug;
 
   const preview = truncate(session.input_text, 130);
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div
+      style={{
+        position: 'relative',
+        outline: compareSelected ? `1.5px solid rgb(${ac} / 0.45)` : 'none',
+        outlineOffset: '1px',
+        borderRadius: '0 4px 4px 0',
+      }}
+    >
+      {compareMode && (
+        <button
+          onClick={onCompareToggle}
+          aria-pressed={compareSelected}
+          style={{
+            position: 'absolute',
+            left: '-1.75rem',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: '1.125rem',
+            height: '1.125rem',
+            border: `1px solid ${compareSelected ? `rgb(${ac} / 0.5)` : 'rgb(var(--color-border) / 0.2)'}`,
+            borderRadius: '3px',
+            background: compareSelected ? `rgb(${ac} / 0.15)` : 'transparent',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '0.5625rem',
+            color: `rgb(${ac})`,
+            flexShrink: 0,
+            transition: 'all 140ms ease',
+          }}
+        >
+          {compareSelected ? '✓' : ''}
+        </button>
+      )}
       <Link
-        href={`/session/${session.id}`}
+        href={compareMode ? '#' : `/session/${session.id}`}
+        onClick={compareMode ? (e) => { e.preventDefault(); onCompareToggle?.(); } : undefined}
         className="liminal-card"
         style={{
           display: 'block',
           padding: '1rem 1.25rem',
           textDecoration: 'none',
           // accent border on the left
-          borderLeft: `2px solid rgb(${ac} / 0.25)`,
+          borderLeft: `2px solid rgb(${ac} / ${compareSelected ? '0.5' : '0.25'})`,
           borderRadius: '0 4px 4px 0',
+          cursor: compareMode ? 'pointer' : undefined,
         }}
       >
         {/* Meta row */}
