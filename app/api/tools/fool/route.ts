@@ -5,6 +5,7 @@ import { queryOne } from '@/lib/db';
 import { runFool } from '@/lib/tools/fool/orchestrator';
 import { checkAndIncrementUsage } from '@/lib/usage';
 import { classifyEntrySignal, emitLumenEvent } from '@/lib/lumenEmitter';
+import { emitToParallax, emitToAxiom } from '@/lib/parallaxEmitter';
 
 const schema = z.object({
   position: z
@@ -72,6 +73,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
+
+    // Fire-and-forget: push session to Parallax for pattern tracking
+    if (user.lumen_user_id && session) {
+      const emitPayload = {
+        lumenUserId: user.lumen_user_id,
+        sessionId: session.id,
+        toolSlug: 'fool',
+        inputText: parsed.data[Object.keys(parsed.data)[0]] || '',
+        structuredOutput: output,
+        summary: typeof summary === 'string' ? summary : '',
+      };
+      void emitToParallax(emitPayload);
+      void emitToAxiom(emitPayload);
+    }
     return NextResponse.json({ sessionId: session!.id, output });
   } catch (err) {
     console.error('[fool]', err);

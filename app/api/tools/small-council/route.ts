@@ -5,6 +5,7 @@ import { queryOne } from '@/lib/db';
 import { runSmallCouncil } from '@/lib/tools/small-council/orchestrator';
 import { checkAndIncrementUsage } from '@/lib/usage';
 import { classifyEntrySignal, emitLumenEvent } from '@/lib/lumenEmitter';
+import { emitToParallax, emitToAxiom } from '@/lib/parallaxEmitter';
 
 const schema = z.object({
   question: z.string().min(10, 'Please describe your dilemma in more detail').max(2000),
@@ -73,6 +74,20 @@ export async function POST(request: NextRequest) {
           createdAt: new Date().toISOString(),
         });
       }
+    }
+
+    // Fire-and-forget: push session to Parallax for pattern tracking
+    if (user.lumen_user_id && session) {
+      const emitPayload = {
+        lumenUserId: user.lumen_user_id,
+        sessionId: session.id,
+        toolSlug: 'small-council',
+        inputText: question,
+        structuredOutput: output,
+        summary: output.summary || '',
+      };
+      void emitToParallax(emitPayload);
+      void emitToAxiom(emitPayload);
     }
 
     return NextResponse.json({ sessionId: session!.id, output });
