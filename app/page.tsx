@@ -159,6 +159,7 @@ export default async function Home() {
           maxWidth: '1060px',
           margin: '0 auto',
           padding: '0 clamp(1.25rem, 4vw, 2.5rem)',
+          paddingBottom: '5rem',
         }}
       >
         {/* ── Hero ──────────────────────────────────────────────────── */}

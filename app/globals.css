@@ -481,3 +481,8 @@ ul[role='list'], ol[role='list'] { list-style: none; }
   white-space: nowrap;
   border-width: 0;
 }
+
+/* ─── Mobile bottom nav spacer ─────────────────────────────────── */
+@media (max-width: 767px) {
+  body { padding-bottom: 4.5rem; }
+}
