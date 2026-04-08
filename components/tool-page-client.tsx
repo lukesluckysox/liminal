@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { ToolIcon } from '@/components/tool-icon';
+import { DownstreamSummary, type DownstreamItem } from '@/components/downstream-summary';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -18,6 +19,12 @@ export interface ToolConfig {
   processingLabel?: string;
   accentHue?: string;
   preamble?: ReactNode;
+  /** Extra CSS class applied to the submit button */
+  submitClassName?: string;
+  /** Extra CSS class applied to the card/form wrapper */
+  cardClassName?: string;
+  /** Inline border color override for the card */
+  cardBorderColor?: string;
 }
 
 interface ToolPageClientProps {
@@ -59,6 +66,7 @@ export function ToolPageClient({ config }: ToolPageClientProps) {
   const [input, setInput] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [downstream, setDownstream] = useState<DownstreamItem[]>([]);
 
   const minLen = config.minLength ?? 10;
   const accent = config.accentHue ?? 'var(--color-gold)';
@@ -105,7 +113,22 @@ export function ToolPageClient({ config }: ToolPageClientProps) {
         return;
       }
 
-      router.push(`/session/${data.sessionId}`);
+      // Increment session counter for Loop onboarding
+      if (data.sessionId) {
+        const prev = parseInt(localStorage.getItem('liminal_sessions_completed') ?? '0', 10);
+        localStorage.setItem('liminal_sessions_completed', String(prev + 1));
+      }
+
+      // Store downstream data before navigating
+      if (Array.isArray(data.downstream) && data.downstream.length > 0) {
+        setDownstream(data.downstream);
+        // Show briefly then navigate
+        setTimeout(() => {
+          router.push(`/session/${data.sessionId}`);
+        }, 1600);
+      } else {
+        router.push(`/session/${data.sessionId}`);
+      }
     } catch {
       setError('A network error occurred. Check your connection and try again.');
     } finally {
@@ -119,6 +142,9 @@ export function ToolPageClient({ config }: ToolPageClientProps) {
         maxWidth: '720px',
         margin: '0 auto',
         padding: 'clamp(2.5rem, 5vw, 5rem) 1.5rem',
+        ...(config.cardBorderColor
+          ? { borderLeft: `3px solid ${config.cardBorderColor}`, paddingLeft: 'calc(1.5rem - 3px)' }
+          : {}),
       }}
     >
       {/* Breadcrumb */}
@@ -374,7 +400,7 @@ export function ToolPageClient({ config }: ToolPageClientProps) {
 
         <button
           type="submit"
-          className="btn-primary"
+          className={`btn-primary${config.submitClassName ? ' ' + config.submitClassName : ''}`}
           disabled={loading || input.trim().length < minLen}
           style={{ padding: '0.7rem 2rem' }}
         >
@@ -388,6 +414,11 @@ export function ToolPageClient({ config }: ToolPageClientProps) {
           )}
         </button>
       </form>
+
+      {/* Downstream summary — shown briefly after session completes */}
+      {downstream.length > 0 && !loading && (
+        <DownstreamSummary downstream={downstream} />
+      )}
 
       {/* Processing overlay */}
       {loading && (
@@ -433,6 +464,23 @@ export function ToolPageClient({ config }: ToolPageClientProps) {
           >
             This may take 15–45 seconds.
           </p>
+          {config.slug === 'interlocutor' && (
+            <div
+              style={{
+                paddingLeft: '1.75rem',
+                marginTop: '0.5rem',
+                color: 'rgb(var(--color-text-faint))',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+              }}
+              aria-hidden="true"
+            >
+              <span className="typing-dot" />
+              <span className="typing-dot" />
+              <span className="typing-dot" />
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -3,10 +3,8 @@
 /**
  * InquirySeedsSection — client wrapper for the home page.
  *
- * Renders pending inquiry seeds from the Lumen recursive loop.
- * When a seed is selected, it copies the seed text to the clipboard
- * and navigates the user to the Small Council — the general-purpose
- * entry point for questions surfaced by other Lumen tools.
+ * When a seed is selected, navigate to /tool/small-council
+ * with the seed text as a query param (?seed=...) so it can be pre-filled.
  */
 
 import { useRouter } from 'next/navigation';
@@ -16,12 +14,8 @@ export function InquirySeedsSection() {
   const router = useRouter();
 
   function handleSelectSeed(text: string) {
-    // Write to clipboard so the user can paste into any tool input
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      navigator.clipboard.writeText(text).catch(() => {/* ignore */});
-    }
-    // Navigate to Small Council as the default vessel for loop-generated questions
-    router.push('/tool/small-council');
+    const params = new URLSearchParams({ seed: text });
+    router.push(`/tool/small-council?${params.toString()}`);
   }
 
   return <InquirySeeds onSelectSeed={handleSelectSeed} />;

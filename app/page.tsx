@@ -4,6 +4,7 @@ import { HexProgress } from '@/components/hex-progress';
 import { ToolIcon } from '@/components/tool-icon';
 import { OnboardingGuide } from '@/components/onboarding-guide';
 import { InquirySeedsSection } from '@/components/inquiry-seeds-section';
+import { LoopOnboarding } from '@/components/loop-onboarding';
 import { getSession } from '@/lib/auth/session';
 import { query, queryOne } from '@/lib/db';
 import { computeStreak, getRecentDays } from '@/lib/user-progress';
@@ -271,6 +272,9 @@ export default async function Home() {
 
           {/* Inquiry seeds from the Lumen recursive loop — authenticated users only */}
           {user && <InquirySeedsSection />}
+
+          {/* Loop onboarding — shown after 1st and 3rd sessions */}
+          {user && <LoopOnboarding />}
 
           <h1
             className="text-display"

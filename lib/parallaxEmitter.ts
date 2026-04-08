@@ -4,6 +4,12 @@
 const PARALLAX_URL = process.env.PARALLAX_URL;
 const LUMEN_INTERNAL_TOKEN = process.env.LUMEN_INTERNAL_TOKEN;
 
+export interface EmitResult {
+  sent: boolean;
+  destination: string;
+  description: string;
+}
+
 export async function emitToParallax(event: {
   lumenUserId: string;
   sessionId: string;
@@ -12,8 +18,10 @@ export async function emitToParallax(event: {
   structuredOutput: object;
   summary: string;
   createdAt?: string;
-}): Promise<void> {
-  if (!PARALLAX_URL || !LUMEN_INTERNAL_TOKEN) return;
+}): Promise<EmitResult> {
+  if (!PARALLAX_URL || !LUMEN_INTERNAL_TOKEN) {
+    return { sent: false, destination: 'parallax', description: 'Session recorded as a check-in. Dimension nudges applied.' };
+  }
   try {
     await fetch(`${PARALLAX_URL}/api/internal/from-liminal`, {
       method: "POST",
@@ -31,9 +39,11 @@ export async function emitToParallax(event: {
         createdAt: event.createdAt || new Date().toISOString(),
       }),
     });
+    return { sent: true, destination: 'parallax', description: 'Session recorded as a check-in. Dimension nudges applied.' };
   } catch (e) {
     console.error("[ParallaxEmitter] Failed to push session:", e);
     // Never throw — emission must not break the main app flow
+    return { sent: false, destination: 'parallax', description: 'Session recorded as a check-in. Dimension nudges applied.' };
   }
 }
 
@@ -47,12 +57,16 @@ export async function emitToAxiom(event: {
   inputText: string;
   structuredOutput: object;
   summary: string;
-}): Promise<void> {
-  if (!AXIOM_URL || !LUMEN_INTERNAL_TOKEN) return;
+}): Promise<EmitResult> {
+  if (!AXIOM_URL || !LUMEN_INTERNAL_TOKEN) {
+    return { sent: false, destination: 'axiom', description: 'Truth-adjacent finding submitted to the Proving Ground.' };
+  }
 
   // Only tools that produce truth-adjacent outputs should push to Axiom
   const axiomTools = ["genealogist", "interlocutor", "stoics-ledger"];
-  if (!axiomTools.includes(event.toolSlug)) return;
+  if (!axiomTools.includes(event.toolSlug)) {
+    return { sent: false, destination: 'axiom', description: 'Truth-adjacent finding submitted to the Proving Ground.' };
+  }
 
   try {
     // Extract a potential truth claim from the structured output
@@ -75,7 +89,9 @@ export async function emitToAxiom(event: {
       suggestedClaim = output.maxim || "";
     }
 
-    if (!suggestedClaim) return;
+    if (!suggestedClaim) {
+      return { sent: false, destination: 'axiom', description: 'Truth-adjacent finding submitted to the Proving Ground.' };
+    }
 
     await fetch(`${AXIOM_URL}/api/internal/from-lumen`, {
       method: "POST",
@@ -95,7 +111,9 @@ export async function emitToAxiom(event: {
         }],
       }),
     });
+    return { sent: true, destination: 'axiom', description: 'Truth-adjacent finding submitted to the Proving Ground.' };
   } catch (e) {
     console.error("[AxiomEmitter] Failed to push from Liminal:", e);
+    return { sent: false, destination: 'axiom', description: 'Truth-adjacent finding submitted to the Proving Ground.' };
   }
 }

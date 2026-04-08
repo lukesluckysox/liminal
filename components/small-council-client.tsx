@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useRef, type FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useRef, useEffect, type FormEvent } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ToolIcon } from '@/components/tool-icon';
+import { DownstreamSummary, type DownstreamItem } from '@/components/downstream-summary';
 
 const ACCENT = '184 150 58';
 
@@ -23,7 +24,7 @@ async function readSSEStream(
     advisor:       (d: AdvisorTurn) => void;
     round_complete:(d: { round: number }) => void;
     synthesis:     (d: { content: string }) => void;
-    complete:      (d: { sessionId: string }) => void;
+    complete:      (d: { sessionId: string; downstream?: DownstreamItem[] }) => void;
     error:         (d: { message: string }) => void;
   }
 ) {
@@ -154,10 +155,21 @@ function RoundHeader({ label }: { label: string }) {
 
 export function SmallCouncilClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Form state
   const [input, setInput] = useState('');
   const [formError, setFormError] = useState('');
+  const [seedBannerVisible, setSeedBannerVisible] = useState(false);
+
+  // Pre-fill from ?seed= param on mount
+  useEffect(() => {
+    const seedParam = searchParams.get('seed');
+    if (seedParam) {
+      setInput(decodeURIComponent(seedParam));
+      setSeedBannerVisible(true);
+    }
+  }, [searchParams]);
 
   // Streaming state
   const [phase, setPhase] = useState<Phase>('idle');
@@ -168,6 +180,7 @@ export function SmallCouncilClient() {
   const [round2Complete, setRound2Complete] = useState(false);
   const [synthesis, setSynthesis] = useState('');
   const [sessionId, setSessionId] = useState('');
+  const [downstream, setDownstream] = useState<DownstreamItem[]>([]);
 
   // Track which turns are "new" (just arrived) for fade-in animation
   const newTurnsRef = useRef<Set<string>>(new Set());
@@ -227,13 +240,17 @@ export function SmallCouncilClient() {
         synthesis: ({ content }) => {
           setSynthesis(content);
         },
-        complete: ({ sessionId: sid }) => {
+        complete: ({ sessionId: sid, downstream: ds }) => {
           setSessionId(sid);
+          if (Array.isArray(ds) && ds.length > 0) setDownstream(ds as DownstreamItem[]);
           setPhase('done');
-          // Short pause so the user sees the synthesis, then auto-navigate
+          // Increment session counter for Loop onboarding
+          const prev = parseInt(localStorage.getItem('liminal_sessions_completed') ?? '0', 10);
+          localStorage.setItem('liminal_sessions_completed', String(prev + 1));
+          // Short pause so the user sees the synthesis + downstream, then auto-navigate
           setTimeout(() => {
             router.push(`/session/${sid}`);
-          }, 1800);
+          }, 2400);
         },
         error: ({ message }) => {
           setStreamError(message);
@@ -321,6 +338,53 @@ export function SmallCouncilClient() {
           Deliberate among divided voices.
         </p>
       </header>
+
+      {/* Seed banner — shown when navigated from inquiry seeds */}
+      {phase === 'idle' && seedBannerVisible && (
+        <div
+          style={{
+            marginBottom: '1.5rem',
+            padding: '0.625rem 1rem',
+            background: 'rgb(var(--color-surface-2))',
+            border: '1px solid rgb(var(--color-border) / 0.1)',
+            borderLeft: '2px solid rgb(77 140 158 / 0.6)',
+            borderRadius: '0 4px 4px 0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '0.75rem',
+            animation: 'fadeSlideUp 0.25s ease both',
+          }}
+          role="status"
+        >
+          <p
+            style={{
+              fontSize: 'clamp(0.75rem, 0.7rem + 0.15vw, 0.8125rem)',
+              color: 'rgb(var(--color-text-muted))',
+              fontStyle: 'italic',
+              fontFamily: 'var(--font-display), Georgia, serif',
+            }}
+          >
+            This question was surfaced by The Loop
+          </p>
+          <button
+            onClick={() => setSeedBannerVisible(false)}
+            aria-label="Dismiss"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'rgb(var(--color-text-faint))',
+              fontSize: '0.875rem',
+              padding: '0.125rem 0.25rem',
+              lineHeight: 1,
+              flexShrink: 0,
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Preamble — only shown before streaming starts */}
       {phase === 'idle' && (
@@ -641,6 +705,11 @@ export function SmallCouncilClient() {
                 Open now →
               </Link>
             </div>
+          )}
+
+          {/* Downstream summary */}
+          {phase === 'done' && downstream.length > 0 && (
+            <DownstreamSummary downstream={downstream} />
           )}
         </div>
       )}
