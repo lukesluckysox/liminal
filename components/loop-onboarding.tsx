@@ -42,8 +42,8 @@ export function LoopOnboarding() {
   const isThird = variant === 'third';
   const accentColor = isThird ? '#c4943e' : '#9c8654';
   const message = isThird
-    ? 'Three sessions in. Parallax may soon propose your first experiment in Praxis.'
-    : 'Your first session was recorded. Parallax is now tracking your patterns.';
+    ? 'Three sessions in. Patterns are forming — an experiment may soon crystallize.'
+    : 'Your first session was recorded. Your patterns are now being woven into the broader picture.';
 
   return (
     <div
@@ -77,13 +77,17 @@ export function LoopOnboarding() {
           flexShrink: 0,
           background: 'none',
           border: 'none',
-          padding: '0.125rem',
+          padding: '0.5rem',
           cursor: 'pointer',
-          fontSize: '0.75rem',
+          fontSize: '0.875rem',
           color: 'rgb(var(--color-text-faint))',
           fontFamily: 'inherit',
           lineHeight: 1,
-          marginTop: '0.125rem',
+          minWidth: '44px',
+          minHeight: '44px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         ✕

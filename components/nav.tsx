@@ -70,7 +70,7 @@ export function Nav({ user }: NavProps) {
                 style={{
                   textDecoration: 'none',
                   fontSize: 'clamp(0.8rem, 0.75rem + 0.25vw, 0.9rem)',
-                  opacity: pathname === '/archive' ? 1 : 0.8,
+                  color: pathname === '/archive' ? 'rgb(var(--color-gold))' : undefined,
                   minHeight: '44px',
                 }}
               >
@@ -82,7 +82,7 @@ export function Nav({ user }: NavProps) {
                 style={{
                   textDecoration: 'none',
                   fontSize: 'clamp(0.8rem, 0.75rem + 0.25vw, 0.9rem)',
-                  opacity: pathname === '/account' ? 1 : 0.8,
+                  color: pathname === '/account' ? 'rgb(var(--color-gold))' : undefined,
                   minHeight: '44px',
                 }}
               >

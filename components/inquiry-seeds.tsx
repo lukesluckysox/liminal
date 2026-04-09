@@ -23,6 +23,18 @@ const SOURCE_LABELS: Record<string, string> = {
   praxis:  'Praxis',
 };
 
+const SOURCE_URLS: Record<string, string> = {
+  axiom:   'https://axiomtool-production.up.railway.app',
+  parallax: 'https://parallaxapp.up.railway.app',
+  praxis:  'https://praxis-production-da89.up.railway.app',
+};
+
+const SOURCE_CTAS: Record<string, string> = {
+  axiom:   'Review your evolving principles →',
+  parallax: 'See the full pattern →',
+  praxis:  'See the experiment →',
+};
+
 const EVENT_PROVOCATIONS: Record<string, string> = {
   constitutional_promotion: 'A truth was established. Does it hold?',
   truth_revision:           'A belief shifted. What does that reveal?',
@@ -85,7 +97,7 @@ export function InquirySeeds({ onSelectSeed }: { onSelectSeed?: (text: string) =
             fontFamily: 'var(--font-display), Georgia, serif',
           }}
         >
-          The system has been thinking with you.
+          Your reflections have been evolving.
         </p>
       </div>
 
@@ -178,6 +190,30 @@ export function InquirySeeds({ onSelectSeed }: { onSelectSeed?: (text: string) =
               >
                 Explore →
               </span>
+
+              {/* Inter-app CTA */}
+              {SOURCE_URLS[seed.source_app] && (
+                <a
+                  href={SOURCE_URLS[seed.source_app]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    display: 'block',
+                    marginTop: '0.5rem',
+                    fontSize: 'clamp(0.7rem, 0.65rem + 0.12vw, 0.75rem)',
+                    color: accentColor,
+                    textDecoration: 'none',
+                    letterSpacing: '0.03em',
+                    opacity: 0.7,
+                    transition: 'opacity 140ms ease',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7'; }}
+                >
+                  {SOURCE_CTAS[seed.source_app] || 'View source →'}
+                </a>
+              )}
             </button>
           );
         })}

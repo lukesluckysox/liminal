@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-
 export interface DownstreamItem {
   destination: string;
   description: string;
@@ -17,6 +15,12 @@ const DESTINATION_LABELS: Record<string, string> = {
   parallax: 'Parallax',
   axiom:    'Axiom',
   praxis:   'Praxis',
+};
+
+const DESTINATION_URLS: Record<string, string> = {
+  parallax: 'https://parallaxapp.up.railway.app',
+  axiom:    'https://axiomtool-production.up.railway.app',
+  praxis:   'https://praxis-production-da89.up.railway.app',
 };
 
 // Simple loop icon (SVG)
@@ -48,8 +52,6 @@ function LoopIcon({ size = 14 }: { size?: number }) {
 }
 
 export function DownstreamSummary({ downstream }: { downstream: DownstreamItem[] }) {
-  const [open, setOpen] = useState(false);
-
   // Only render items that were actually sent
   const items = downstream.filter(d => d.destination);
   if (items.length === 0) return null;
@@ -62,86 +64,63 @@ export function DownstreamSummary({ downstream }: { downstream: DownstreamItem[]
         borderTop: '1px solid rgb(var(--color-border) / 0.08)',
       }}
     >
-      <button
-        onClick={() => setOpen(v => !v)}
+      <div
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: '0.5rem',
-          background: 'transparent',
-          border: 'none',
-          padding: 0,
-          cursor: 'pointer',
           color: 'rgb(var(--color-text-faint))',
           fontSize: 'clamp(0.625rem, 0.58rem + 0.12vw, 0.6875rem)',
           fontWeight: 600,
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
-          transition: 'color 140ms ease',
+          marginBottom: '0.875rem',
         }}
-        aria-expanded={open}
       >
         <LoopIcon size={12} />
-        What This Triggered
-        <span
-          style={{
-            marginLeft: '0.25rem',
-            opacity: 0.5,
-            fontWeight: 400,
-            letterSpacing: 0,
-            textTransform: 'none',
-            fontSize: '0.75rem',
-            transition: 'transform 160ms ease',
-            display: 'inline-block',
-            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-          }}
-          aria-hidden="true"
-        >
-          ↓
-        </span>
-      </button>
+        Where this resonated
+      </div>
 
-      {open && (
-        <div
-          style={{
-            marginTop: '0.875rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-            animation: 'fadeSlideUp 0.2s ease both',
-          }}
-        >
-          {items.map((item, i) => {
-            const color = DESTINATION_COLORS[item.destination] ?? '#8D99AE';
-            const label = DESTINATION_LABELS[item.destination] || item.destination;
-            return (
-              <div
-                key={i}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem',
+          animation: 'fadeSlideUp 0.2s ease both',
+        }}
+      >
+        {items.map((item, i) => {
+          const color = DESTINATION_COLORS[item.destination] ?? '#8D99AE';
+          const label = DESTINATION_LABELS[item.destination] || item.destination;
+          const url = DESTINATION_URLS[item.destination];
+          return (
+            <div
+              key={i}
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: '0.625rem',
+              }}
+            >
+              {/* Colored dot */}
+              <span
+                aria-hidden="true"
                 style={{
-                  display: 'flex',
-                  alignItems: 'baseline',
-                  gap: '0.625rem',
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: color,
+                  flexShrink: 0,
+                  marginTop: '0.4rem',
+                  display: 'inline-block',
+                  opacity: 0.75,
                 }}
-              >
-                {/* Colored dot */}
-                <span
-                  aria-hidden="true"
-                  style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    background: color,
-                    flexShrink: 0,
-                    marginTop: '0.4rem',
-                    display: 'inline-block',
-                    opacity: 0.75,
-                  }}
-                />
+              />
+              <div style={{ lineHeight: 1.55 }}>
                 <p
                   style={{
                     fontSize: 'clamp(0.8rem, 0.75rem + 0.15vw, 0.85rem)',
                     color: 'rgb(var(--color-text-faint))',
-                    lineHeight: 1.55,
                   }}
                 >
                   <span
@@ -158,11 +137,30 @@ export function DownstreamSummary({ downstream }: { downstream: DownstreamItem[]
                   </span>
                   {item.description}
                 </p>
+                {url && (
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      fontSize: 'clamp(0.7rem, 0.65rem + 0.12vw, 0.75rem)',
+                      color,
+                      textDecoration: 'none',
+                      letterSpacing: '0.03em',
+                      opacity: 0.8,
+                      transition: 'opacity 140ms ease',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.8'; }}
+                  >
+                    See what emerged →
+                  </a>
+                )}
               </div>
-            );
-          })}
-        </div>
-      )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

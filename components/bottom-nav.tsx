@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, Zap, BookOpen, User } from 'lucide-react';
+import { Home, Users, BookOpen, Sparkles, User } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { href: '/', label: 'home', Icon: Home },
-  { href: '/tool/small-council', label: 'council', Icon: Users },
-  { href: '/tool/fool', label: 'fool', Icon: Zap },
-  { href: '/archive', label: 'archive', Icon: BookOpen },
-  { href: '/account', label: 'account', Icon: User },
+  { href: '/', label: 'Home', Icon: Home },
+  { href: '/tool/small-council', label: 'Council', Icon: Users },
+  { href: '/tool/fool', label: 'Fool', Icon: Sparkles },
+  { href: '/archive', label: 'Archive', Icon: BookOpen },
+  { href: '/account', label: 'Account', Icon: User },
 ] as const;
 
 export function BottomNav() {
@@ -28,6 +28,7 @@ export function BottomNav() {
         background: 'rgb(var(--color-bg) / 0.9)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
       className="md:hidden"
     >
@@ -52,30 +53,30 @@ export function BottomNav() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: '0.125rem',
+                gap: '0.25rem',
                 padding: '0.625rem 0.75rem',
-                minHeight: '44px',
+                minHeight: '48px',
                 textDecoration: 'none',
                 color: isActive
-                  ? 'rgb(var(--color-text))'
+                  ? 'rgb(var(--color-gold))'
                   : 'rgb(var(--color-text-faint))',
-                opacity: isActive ? 1 : 0.4,
+                opacity: isActive ? 1 : 0.55,
                 transition: 'opacity 0.15s ease, color 0.15s ease',
                 flex: 1,
                 justifyContent: 'center',
               }}
             >
               <Icon
-                style={{ width: '18px', height: '18px', flexShrink: 0 }}
-                strokeWidth={1.5}
+                style={{ width: '20px', height: '20px', flexShrink: 0 }}
+                strokeWidth={isActive ? 2 : 1.5}
               />
               <span
                 style={{
-                  fontSize: '8px',
-                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '10px',
+                  fontFamily: 'var(--font-body), system-ui, sans-serif',
                   letterSpacing: '0.04em',
-                  textTransform: 'lowercase',
                   lineHeight: 1,
+                  fontWeight: isActive ? 600 : 400,
                 }}
               >
                 {label}

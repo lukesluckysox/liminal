@@ -122,10 +122,10 @@ export function ToolPageClient({ config }: ToolPageClientProps) {
       // Store downstream data before navigating
       if (Array.isArray(data.downstream) && data.downstream.length > 0) {
         setDownstream(data.downstream);
-        // Show briefly then navigate
+        // Show for a comfortable reading duration then navigate
         setTimeout(() => {
           router.push(`/session/${data.sessionId}`);
-        }, 1600);
+        }, 4000);
       } else {
         router.push(`/session/${data.sessionId}`);
       }
@@ -221,6 +221,7 @@ export function ToolPageClient({ config }: ToolPageClientProps) {
       {/* Trust note */}
       {trustNote && (
         <div
+          className="trust-notes-grid"
           style={{
             marginBottom: '2rem',
             display: 'grid',
