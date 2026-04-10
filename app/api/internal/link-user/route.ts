@@ -19,14 +19,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  let body: { email?: string; username?: string; lumenUserId?: string | number };
+  let body: { email?: string; username?: string; lumenUserId?: string | number; plan?: string };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const { email, username, lumenUserId } = body;
+  const { email, username, lumenUserId, plan } = body;
+  // Map Lumen canonical plan to Liminal plan on every login
+  const liminalPlan = plan === 'free' ? 'open' : (plan === 'pro' || plan === 'founder') ? 'cabinet' : null;
 
   if (!email) {
     return NextResponse.json({ error: 'Missing required field: email' }, { status: 400 });
@@ -56,11 +58,18 @@ export async function POST(request: NextRequest) {
       throw new Error('Failed to find or create user');
     }
 
-    // Update lumen_user_id and username
-    await execute(
-      `UPDATE users SET lumen_user_id = $1, username = $2 WHERE id = $3`,
-      [lumenUserId != null ? String(lumenUserId) : null, username ?? null, user.id]
-    );
+    // Update lumen_user_id, username, and plan (if provided from Lumen)
+    if (liminalPlan) {
+      await execute(
+        `UPDATE users SET lumen_user_id = $1, username = $2, plan = $3 WHERE id = $4`,
+        [lumenUserId != null ? String(lumenUserId) : null, username ?? null, liminalPlan, user.id]
+      );
+    } else {
+      await execute(
+        `UPDATE users SET lumen_user_id = $1, username = $2 WHERE id = $3`,
+        [lumenUserId != null ? String(lumenUserId) : null, username ?? null, user.id]
+      );
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err: any) {
