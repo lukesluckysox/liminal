@@ -92,11 +92,8 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS lumen_user_id TEXT;
 -- Username: display name synced from Lumen
 ALTER TABLE users ADD COLUMN IF NOT EXISTS username TEXT;
 
--- Ensure oracle role for the designated admin email
-UPDATE users SET role = 'oracle', plan = 'cabinet' WHERE email = 'thebestpolicyis@gmail.com';
-
--- Seed oracle account username
-UPDATE users SET username = 'lukesluckysox' WHERE email = 'thebestpolicyis@gmail.com' AND (username IS NULL OR username = '');
+-- Oracle role is seeded via: npm run seed:oracle (reads ORACLE_EMAIL env var)
+-- See scripts/seedOracle.ts
 
 -- Audit log for plan changes and admin actions
 CREATE TABLE IF NOT EXISTS audit_log (
