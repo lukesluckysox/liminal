@@ -16,14 +16,15 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const rows = await query<{ email: string; username: string | null; created_at: string }>(
-      `SELECT email, username, created_at FROM users ORDER BY created_at ASC`
+    const rows = await query<{ email: string; username: string | null; plan: string | null; created_at: string }>(
+      `SELECT email, username, plan, created_at FROM users ORDER BY created_at ASC`
     );
 
     return NextResponse.json({
       users: rows.map(u => ({
         email:     u.email,
         username:  u.username || u.email.split('@')[0],
+        plan:      u.plan || 'free',
         createdAt: u.created_at,
       })),
     });
