@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const { email, username, plan } = await request.json();
-    if (!plan || !['free', 'pro', 'founder'].includes(plan)) {
+    if (!plan || !['free', 'pro', 'founder', 'aspirant', 'fellow'].includes(plan)) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
     }
     if (!email && !username) {
@@ -30,7 +30,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Map Lumen plan → Liminal plan
-    const liminalPlan = plan === 'free' ? 'open' : 'cabinet';
+    // New values: aspirant/fellow passed directly
+    // Legacy: free→aspirant, pro/founder→fellow
+    const liminalPlan = plan === 'aspirant' ? 'aspirant' : (plan === 'free' ? 'aspirant' : 'fellow');
 
     // Find user by email (primary) or username (fallback)
     let user: { id: string } | null = null;

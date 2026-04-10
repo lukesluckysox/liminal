@@ -5,7 +5,7 @@ import { COOKIE_NAME, SESSION_DURATION_DAYS } from './constants';
 export { COOKIE_NAME } from './constants';
 
 export type UserRole = 'user' | 'oracle';
-export type UserPlan = 'open' | 'cabinet' | 'trialing' | 'canceled' | 'grandfathered';
+export type UserPlan = 'aspirant' | 'fellow' | 'trialing' | 'canceled' | 'grandfathered';
 
 export interface AuthUser {
   id: string;

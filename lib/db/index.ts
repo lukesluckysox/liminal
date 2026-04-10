@@ -77,8 +77,8 @@ ALTER TABLE tool_sessions ADD COLUMN IF NOT EXISTS feedback TEXT;
 -- ── Monetization schema additions ──────────────────────────────────────────
 -- Role: 'user' (default) or 'oracle' (admin)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user';
--- Plan: 'open' (free) or 'cabinet' (paid). Extensible to 'trialing', 'canceled', 'grandfathered'.
-ALTER TABLE users ADD COLUMN IF NOT EXISTS plan TEXT NOT NULL DEFAULT 'open';
+-- Plan: 'aspirant' (free) or 'fellow' (paid). Extensible to 'trialing', 'canceled', 'grandfathered'.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS plan TEXT NOT NULL DEFAULT 'aspirant';
 -- Monthly usage tracking
 ALTER TABLE users ADD COLUMN IF NOT EXISTS monthly_session_count INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS monthly_session_reset TIMESTAMPTZ DEFAULT NOW();

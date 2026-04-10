@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
         `INSERT INTO users (email, password_hash, role, plan)
          VALUES ($1, $2, $3, $4)
          RETURNING id`,
-        [ssoEmail, randomHash, 'user', 'open']
+        [ssoEmail, randomHash, 'user', 'aspirant']
       );
     }
 

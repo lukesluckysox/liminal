@@ -28,7 +28,8 @@ export async function POST(request: NextRequest) {
 
   const { email, username, lumenUserId, plan } = body;
   // Map Lumen canonical plan to Liminal plan on every login
-  const liminalPlan = plan === 'free' ? 'open' : (plan === 'pro' || plan === 'founder') ? 'cabinet' : null;
+  // New values: aspirant/fellow passed directly; legacy: free→aspirant, pro/founder→fellow
+  const liminalPlan = (plan === 'aspirant' || plan === 'free') ? 'aspirant' : (plan === 'fellow' || plan === 'pro' || plan === 'founder') ? 'fellow' : null;
 
   if (!email) {
     return NextResponse.json({ error: 'Missing required field: email' }, { status: 400 });
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
         `INSERT INTO users (email, password_hash, role, plan)
          VALUES ($1, $2, $3, $4)
          RETURNING id`,
-        [normalizedEmail, randomHash, 'user', 'open']
+        [normalizedEmail, randomHash, 'user', 'aspirant']
       );
     }
 

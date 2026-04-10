@@ -2,7 +2,7 @@
  * One-time seed script: promote a user to oracle role.
  *
  * Reads the admin email from the ORACLE_EMAIL environment variable
- * and sets role='oracle', plan='cabinet' on that user row.
+ * and sets role='oracle', plan='fellow' on that user row.
  *
  * Usage:
  *   ORACLE_EMAIL=you@example.com npx tsx scripts/seedOracle.ts
@@ -51,7 +51,7 @@ async function main() {
   }
 
   await execute(
-    `UPDATE users SET role = 'oracle', plan = 'cabinet' WHERE email = $1`,
+    `UPDATE users SET role = 'oracle', plan = 'fellow' WHERE email = $1`,
     [normalizedEmail]
   );
 
