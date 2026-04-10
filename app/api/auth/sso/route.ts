@@ -72,11 +72,11 @@ export async function GET(request: NextRequest) {
       throw new Error('Failed to find or create SSO user');
     }
 
-    // Persist the Lumen userId so epistemic events can reference it
+    // Persist the Lumen userId and username so epistemic events can reference them
     if (payload.userId) {
       await execute(
-        `UPDATE users SET lumen_user_id = $1 WHERE id = $2`,
-        [String(payload.userId), user.id]
+        `UPDATE users SET lumen_user_id = $1, username = $2 WHERE id = $3`,
+        [String(payload.userId), payload.username ?? null, user.id]
       );
     }
 
