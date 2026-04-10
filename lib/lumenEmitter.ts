@@ -1,7 +1,7 @@
 // lib/lumenEmitter.ts
 // Sends epistemic events to Lumen's shared API layer
 
-const LUMEN_API_URL = process.env.LUMEN_API_URL;
+const LUMEN_API_URL = (process.env.LUMEN_API_URL || '').replace(/\/+$/, '');  // strip trailing slash
 const LUMEN_INTERNAL_TOKEN = process.env.LUMEN_INTERNAL_TOKEN;
 
 export interface LumenEventPayload {
